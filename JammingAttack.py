@@ -4,8 +4,7 @@ from Constructor import Constructor
 
 
 class JammingAttack:
-    def __init__(self, base_reading, size = 20000):
-        self.base_reading = base_reading
+    def __init__(self, size = 20000):
         self.size = size
         self.jammingStructure = []
 
@@ -18,5 +17,9 @@ class JammingAttack:
 
     #Genrates the jamming data and the ground truth
     def generateJamming(self):
-        self.jammingStructure[:self.size] = Parameters.JAMMING_10DBM
-        return Constructor.assemble(self.jammingStructure)
+        if not self.jammingStructure:
+            self.buildElement(0, self.size, Parameters.JAMMING_10DBM)
+        contructor = Constructor()
+        return contructor.assemble(self.jammingStructure)
+
+
