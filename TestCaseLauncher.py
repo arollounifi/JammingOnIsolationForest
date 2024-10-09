@@ -8,11 +8,11 @@ from TestResult import TestResult
 
 #---- DATA ----#
 
-NORMAL_TRAFFIC_FILE = 'data/normal_traffic.txt'
+#NORMAL_TRAFFIC_FILE = 'data/normal_traffic.txt'
 
-CONSTANT_JAMMING_FILE = 'data/constant_jammer.txt'
+#CONSTANT_JAMMING_FILE = 'data/constant_jammer.txt'
 
-PERIODIC_JAMMING_FILE = 'data/periodic_jammer.txt'
+#PERIODIC_JAMMING_FILE = 'data/periodic_jammer.txt'
 
 
 
