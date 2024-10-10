@@ -103,7 +103,6 @@ class TestJammingAttack(unittest.TestCase):
 
     # Test generateJamming when jammingStructure is empty.
     def test_generateJamming_with_empty_structure(self):
-        # Ensure jammingStructure is empty
         self.jamming_attack.jammingStructure = []
 
         # Since generateJamming sets jammingStructure internally, we can test that the method doesn't raise exceptions when starting with an empty structure.

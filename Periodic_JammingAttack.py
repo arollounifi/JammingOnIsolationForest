@@ -1,8 +1,4 @@
 import random
-from copyreg import constructor
-from distutils.command.build import build
-from operator import index
-
 from JammingAttack import JammingAttack
 from Parameters import Parameters
 
