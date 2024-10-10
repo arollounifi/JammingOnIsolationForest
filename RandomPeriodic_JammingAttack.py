@@ -7,7 +7,7 @@ class RandomPeriodic_JammingAttack(Periodic_JammingAttack):
 
     def generateJamming(self):
         index = 0
-        current_signal = self.selectStart(self.jammingTypes)
+        current_signal = self.selectStart(self.jammingType)
 
         # print(f"Starting Signal: {start_signal}")
         # print(f"Burst Duration: {burst_duration}")
