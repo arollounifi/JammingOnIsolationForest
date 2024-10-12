@@ -13,7 +13,7 @@ MINIMUM_DUTY_RATE = 0.1
 class Periodic_JammingAttack(JammingAttack):
     def __init__(self, size=20000, jammingType = Parameters.JAMMING_10DBM):
         super().__init__(size)
-        self.jammingType = jammingType #only one type of jamming signal is considered
+        self.jammingType = [jammingType] #only one type of jamming signal is considered
         self.burstDuration = self.decideBurstDuration() * 100
         self.dutyRate = self.decideDutyRate()
         self.restDuration = round((self.burstDuration/self.dutyRate)* (1-self.dutyRate))

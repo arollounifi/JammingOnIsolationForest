@@ -19,57 +19,55 @@ class TestJammingAttack(unittest.TestCase):
         self.assertEqual(self.jamming_attack.size, self.size)
         self.assertEqual(self.jamming_attack.jammingStructure, [])
 
-    def test_selectStart_jammingTypes_invalid_low(self):
+    def test_selectStart_jammingTypes_none(self):
+        """Test that an exception is raised when jammingTypes is None."""
         with self.assertRaises(Exception) as context:
-            self.jamming_attack.selectStart(0)  # Invalid jammingTypes
+            self.jamming_attack.selectStart(None)
         self.assertIn("The jamming type is not valid", str(context.exception))
 
-    def test_selectStart_jammingTypes_invalid_high(self):
-        with self.assertRaises(Exception) as context:
-            self.jamming_attack.selectStart(4)  # Invalid jammingTypes
-        self.assertIn("The jamming type is not valid", str(context.exception))
-
-    # Test that selectStart returns Parameters.NORMAL_TRAFFIC when NormalorJamming == 0.
+    #Test that selectStart returns Parameters.NORMAL_TRAFFIC when NormalorJamming == 0
     @patch('random.randint')
     def test_selectStart_returns_NORMAL_TRAFFIC(self, mock_randint):
-        # Mock random.randint to return 0 for NormalorJamming
-        mock_randint.side_effect = [0]  # First call returns 0
-        result = self.jamming_attack.selectStart(2)  # jammingTypes can be any valid value
+        # Mock random.randint to return 0
+        mock_randint.return_value = 0
+        jamming_types = ['jamming_type_1', 'jamming_type_2']
+        result = self.jamming_attack.selectStart(jamming_types)
         self.assertEqual(result, Parameters.NORMAL_TRAFFIC)
-        # Verify that random.randint was called with (0, 1)
         mock_randint.assert_called_with(0, 1)
 
-    # Test that selectStart returns a jamming type when NormalorJamming == 1.
+    # Test that selectStart returns a jamming type when NormalorJamming == 1
     @patch('random.randint')
-    def test_selectStart_returns_jammingType(self, mock_randint):
-        # Mock random.randint to return 1 for NormalorJamming, then 2 for jamming type
-        mock_randint.side_effect = [1, 2]  # First call: NormalorJamming, Second call: jamming type
-        result = self.jamming_attack.selectStart(3)
-        self.assertEqual(result, 2)
-        # Verify the sequence of calls
-        expected_calls = [((0, 1),), ((1, 3),)]
-        actual_calls = mock_randint.call_args_list
-        self.assertEqual(actual_calls, [unittest.mock.call(*args) for args in expected_calls])
+    @patch('random.choice')
+    def test_selectStart_returns_jammingType(self, mock_choice, mock_randint):
+        # Mock random.randint to return 1
+        mock_randint.return_value = 1
+        # Mock random.choice to return a specific jamming type
+        mock_choice.return_value = 'jamming_type_1'
+        jamming_types = ['jamming_type_1', 'jamming_type_2']
+        result = self.jamming_attack.selectStart(jamming_types)
+        self.assertIn(result, jamming_types)
+        self.assertEqual(result, 'jamming_type_1')
+        mock_randint.assert_called_with(0, 1)
+        mock_choice.assert_called_with(jamming_types)
 
-    # Test that selectStart returns the correct jamming type for each jammingTypes value.
+    # Test that selectStart returns one of the provided jammingTypes
     @patch('random.randint')
-    def test_selectStart_jammingType_range(self, mock_randint):
-        # Test for jammingTypes = 1
-        mock_randint.side_effect = [1, 1]
-        result = self.jamming_attack.selectStart(1)
-        self.assertEqual(result, 1)
-        mock_randint.reset_mock()
-
-        # Test for jammingTypes = 2
-        mock_randint.side_effect = [1, 2]
-        result = self.jamming_attack.selectStart(2)
-        self.assertEqual(result, 2)
-        mock_randint.reset_mock()
-
-        # Test for jammingTypes = 3
-        mock_randint.side_effect = [1, 3]
-        result = self.jamming_attack.selectStart(3)
-        self.assertEqual(result, 3)
+    @patch('random.choice')
+    def test_selectStart_random_choice(self, mock_choice, mock_randint):
+        mock_randint.return_value = 1
+        jamming_types = ['jamming_type_1', 'jamming_type_2', 'jamming_type_3']
+        mock_choice.side_effect = ['jamming_type_2', 'jamming_type_3', 'jamming_type_1']
+        results = []
+        for _ in range(3):
+            result = self.jamming_attack.selectStart(jamming_types)
+            results.append(result)
+        self.assertEqual(results, ['jamming_type_2', 'jamming_type_3', 'jamming_type_1'])
+        for result in results:
+            self.assertIn(result, jamming_types)
+        mock_randint.assert_called_with(0, 1)
+        self.assertEqual(mock_choice.call_count, 3)
+        calls = [unittest.mock.call(jamming_types) for _ in range(3)]
+        mock_choice.assert_has_calls(calls)
 
     # Test the buildElement method to ensure it appends elements correctly.
     def test_buildElement(self):

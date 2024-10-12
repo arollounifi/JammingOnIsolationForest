@@ -3,10 +3,14 @@ from Parameters import Parameters
 from Constructor import Constructor
 
 #---- THESE ARE PLACEHOLDERS ----
-MAXIMUM_BURST_DURATION = 0
-MINIMUM_BURST_DURTAION = 0
-MAXIMUM_DUTY_RATE = 0
-MINIMUM_DUTY_RATE = 0
+#these values are to be inteded * 100
+MAXIMUM_BURST_DURATION = 5
+MINIMUM_BURST_DURATION = 1
+
+#this value is to be intended as the ratio of the burst duration to the total cycle period
+MAXIMUM_DUTY_RATE = 0.5
+MINIMUM_DUTY_RATE = 0.1
+
 
 class JammingAttack:
     def __init__(self, size = 20000):
@@ -32,7 +36,7 @@ class JammingAttack:
         self.jammingStructure.append([startIndex, endIndex, Type])
 
     def decideBurstDuration(self):
-        return random.randint(MINIMUM_BURST_DURTAION, MAXIMUM_BURST_DURATION)
+        return random.randint(MINIMUM_BURST_DURATION, MAXIMUM_BURST_DURATION)
 
     def decideDutyRate(self):
         return random.uniform(MINIMUM_DUTY_RATE, MAXIMUM_DUTY_RATE)

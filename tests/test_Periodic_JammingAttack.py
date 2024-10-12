@@ -31,7 +31,7 @@ class TestPeriodicJammingAttack(unittest.TestCase):
 
     #Test that generateJammingStructure correctly builds the jammingStructure.
     def test_generateJammingStructure(self):
-        self.attack.generateJammingStructure()
+        self.attack.generateJamming()
         # Ensure that jammingStructure is not empty
         self.assertTrue(len(self.attack.jammingStructure) > 0)
 

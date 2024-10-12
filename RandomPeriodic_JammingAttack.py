@@ -20,7 +20,8 @@ class RandomPeriodic_JammingAttack(Periodic_JammingAttack):
                 if end_index > self.size:
                     end_index = self.size
 
-                # Append the current element
+                # Append the current element-
+
                 self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
 
                 index = end_index

@@ -19,8 +19,10 @@ class TestPeriodicJammingAttack(unittest.TestCase):
 
     # Test that generateJamming builds the jammingStructure correctly with updated burstDuration and restDuration.
     def test_generateJamming(self):
-        # Call the generateJamming method
+        # Call the generateJamming
+        print ("Sto per iniziale la generazione")
         jamming_values, ground_truth = self.attack.generateJamming()
+        print("Ho finito la generazione")
 
         # Ensure that jammingStructure is not empty
         self.assertTrue(len(self.attack.jammingStructure) > 0)

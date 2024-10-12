@@ -82,6 +82,7 @@ class TestConstructor(unittest.TestCase):
         expected_length = 20  # Total length from jamming_structure
         self.assertEqual(len(jamming_values), expected_length)
         self.assertEqual(len(ground_truth), expected_length)
+        self.assertEqual(len(jamming_values), len(ground_truth))
 
         # Verify ground truth labels
         expected_ground_truth = (

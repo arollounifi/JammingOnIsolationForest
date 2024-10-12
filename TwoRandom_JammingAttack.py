@@ -19,166 +19,108 @@ class TwoRandom_JammingAttack(JammingAttack):
         super().__init__(size)
         if jammingTypes is None:
             self.jammingTypes = [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM]
-        self.jammingTypes = jammingTypes
-        self.burstDuration = self.decideBurstDuration() * 100
-        self.dutyRate1 = self.decideDutyRate(jammingTypes[0])
-        self.dutyRate2 = self.decideDutyRate(jammingTypes[1])
-        self.restDuration1 = round((self.burstDuration/self.dutyRate1)* (1-self.dutyRate1))
-        self.restDuration2 = round((self.burstDuration/self.dutyRate2)* (1-self.dutyRate2))
+        else:
+            self.jammingTypes = jammingTypes
 
-    def decideDutyRate(self, Attacker ):
+        self.burstDurations ={}
+        self.dutyRates = {}
+        self.restDurations = {}
+        self.last_attack_indices = {}
+
+        for attack_type in self.jammingTypes:
+            burstDuration = self.decideBurstDuration() * 100
+            dutyRate = self.decideDutyRate(attack_type)
+            restDuration = round((burstDuration / dutyRate) * (1 - dutyRate))
+
+            self.burstDurations[attack_type] = burstDuration
+            self.dutyRates[attack_type] = dutyRate
+            self.restDurations[attack_type] = restDuration
+            self.last_attack_indices[attack_type] = -restDuration #Allows to attack immediately if so desired
+
+    def decideBurstDuration(self):
+        return random.randint(MINIMUM_BURST_DURTAION, MAXIMUM_BURST_DURATION)
+
+    def decideDutyRate(self, Attacker):
         if Attacker == self.jammingTypes[0]:
             return random.uniform(MINIMUM_DUTY_RATE_1, MAXIMUM_DUTY_RATE_1)
         else:
             return random.uniform(MINIMUM_DUTY_RATE_2, MAXIMUM_DUTY_RATE_2)
 
-    # TODO -> update the attack duration after each attack
+    #Determines if a jamming attack of a specific type can be inserted at the current index based on the rest duration
+    def can_insert_attack(self, attack_type, index):
+        last_attack_index = self.last_attack_indices[attack_type]
+        rest_duration = self.restDurations[attack_type]
+        return index >= last_attack_index + rest_duration
+
+    # Inserts an attack of a given type, updates the index and returns the end index
+    def insert_attack(self, attack_type, index):
+        burst_duration = self.burstDurations[attack_type]
+        attack_end_index = min(index + burst_duration, self.size)
+        self.buildElement(index, attack_end_index, attack_type)
+        self.last_attack_indices[attack_type] = attack_end_index
+
+        new_burstDuration = self.decideBurstDuration() * 100
+        new_dutyRate = self.decideDutyRate(attack_type)
+        new_restDuration = round(new_burstDuration * ((1 - new_dutyRate) / new_dutyRate))
+
+        self.restDurations[attack_type] = new_restDuration
+        self.burstDurations[attack_type] = new_burstDuration
+        self.dutyRates[attack_type] = new_dutyRate
+
+        return attack_end_index
+
+    # Inserts normal traffic from the current index to the end index and returns the end index
+    def insert_normal_traffic(self, index, end_index):
+        self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
+        return end_index
+
+    # Determines wich attacks are available to be inserted at the current index
+    def get_next_available_attacks(self, index):
+        available_attacks = []
+        for attack_type in self.jammingTypes:
+            if self.can_insert_attack(attack_type, index):
+                available_attacks.append(attack_type)
+        return available_attacks
+
+    # Decides which attack to insert nect when multiple attacks are avaialble. The order in the JammingAttacks list is the priority.
+    def decide_next_attack(self, available_attacks):
+        # Assuming JammingAttacks[0] is the strongest attack available
+        for attack_type in self.jammingTypes:
+            if attack_type in available_attacks:
+                return attack_type
+        return None
+
+
+    def get_next_available_time(self):
+        #if all the elements in last_attack_indices are negative, then set the next_times to the rest durations
+        if all(last_index < 0 for last_index in self.last_attack_indices.values()):
+            return min(self.restDurations.values())
+        else:
+            next_times = [last_index + rest_duration for last_index, rest_duration in zip(
+                self.last_attack_indices.values(), self.restDurations.values())]
+        return min(next_times)
+
     def generateJamming(self):
         index = 0
-        lastAttackIndex1 = 0
-        lastAttackIndex2 = 0
+        self.last_attack_indices = {
+            attack_type: -self.restDurations[attack_type] for attack_type in self.jammingTypes}
         first_signal = self.selectStart(self.jammingTypes)
 
-        # print(f"Starting Signal: {start_signal}")
-        # print(f"Burst Duration: {burst_duration}")
-        # print(f"Duty Rate: {duty_rate}")
-
-        #creation of the first block
-        if first_signal == Parameters.NORMAL_TRAFFIC:
-            # Calculate end index for the current signal
-            end_index = index + random.choice([self.restDuration1, self.restDuration2])
-            self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
-            index = end_index
-
-        elif first_signal == self.jammingTypes[0]:
-            end_index = index + self.burstDuration
-            self.buildElement(index, end_index, Parameters.JAMMING_10DBM)
-            index, lastAttackIndex1 = end_index
-
+        if first_signal in self.jammingTypes:
+            index = self.insert_attack(first_signal, index)
         else:
-            end_index = index + self.burstDuration
-            self.buildElement(index, end_index, Parameters.JAMMING_NEG10DBM)
-            index, lastAttackIndex2 = end_index
+            next_available_time = self.get_next_available_time()
+            end_index = min(next_available_time, self.size)
+            index = self.insert_normal_traffic(index, end_index)
 
-        last_signal = first_signal
-
-        #Geneartion of the rest of the blocks
         while index < self.size:
-            '''
-            Se l'ultimo segnale è traffico normale, 
-                si controlla se è possibile inserire un attacco di tipo 1 o 2
-                    se è possibile si inserisce l'attacco di tipo 1 o 2
-                altrimenti si inserisce traffico normale
-            '''
-            if last_signal == Parameters.NORMAL_TRAFFIC:
-                # Controllo se è possibile inserire un attacco di tipo 1
-                if index > lastAttackIndex1 + self.restDuration1 and index < lastAttackIndex2 + self.restDuration2:
-                    if index + self.burstDuration > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + self.burstDuration
-                    self.buildElement(index, end_index, self.jammingTypes[1])
-                    last_signal = self.jammingTypes[1]
-                    index, lastAttackIndex2 = end_index
-
-                # Controllo se è possibile inserire un attacco di tipo 2
-                elif index < lastAttackIndex1 + self.restDuration1 and index > lastAttackIndex2 + self.restDuration2:
-                    if index + self.burstDuration > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + self.burstDuration
-                    self.buildElement(index, end_index, self.jammingTypes[0])
-                    last_signal = self.jammingTypes[0]
-                    index, lastAttackIndex1 = end_index
-
-                # Non è possibile inserire nessun attacco quindi si inserisce traffico normale fino alla disponibilità di un attacco
-                elif index > lastAttackIndex1 + self.restDuration1 and index > lastAttackIndex2 + self.restDuration2:
-                    diff1 = index - lastAttackIndex1 + self.restDuration1
-                    diff2 = index - lastAttackIndex2 + self.restDuration2
-                    if index + min(diff1, diff2) > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + min(diff1, diff2)
-                    self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
-                    last_signal = Parameters.NORMAL_TRAFFIC
-                    index = end_index
-
-                else:
-                    # If both are available, the first strongest one is selected
-                    if index + self.burstDuration > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + self.burstDuration
-                    self.buildElement(index, end_index, self.jammingTypes[0])
-                    last_signal = self.jammingTypes[0]
-                    index, lastAttackIndex1 = end_index
-
-            # Se l'ultimo segnale è di tipo 1
-            #   si controlla se è possibile inserire un attacco di tipo 2
-            #       se è possibile si inserisce l'attacco di tipo 2
-            #   altrimenti si inserisce traffico normale
-            #   Se nel mentre è possibile inserire un attacco di tipo 1, si inserisce l'attacco di tipo 1
-            elif last_signal == self.jammingTypes[0]:
-                if index < lastAttackIndex2 + self.restDuration2:
-                    if index + self.burstDuration > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + self.burstDuration
-                    self.buildElement(index, end_index, self.jammingTypes[1])
-                    last_signal = self.jammingTypes[1]
-                    index, lastAttackIndex2 = end_index
-                else:
-                    diff = index - lastAttackIndex2 + self.restDuration2
-                    if index + diff < lastAttackIndex1 + self.restDuration1:
-                        if index + self.burstDuration > self.size:
-                            end_index = self.size
-                        else:
-                            end_index = index + self.burstDuration
-                        self.buildElement(index, end_index, self.jammingTypes[0])
-                        last_signal = self.jammingTypes[0]
-                        index, lastAttackIndex1 = end_index
-                    else:
-                        if index + diff > self.size:
-                            end_index = self.size
-                        else:
-                            end_index = index + diff
-                        self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
-                        last_signal = Parameters.NORMAL_TRAFFIC
-                        index = end_index
-
-            # Se l'ultimo segnale è di tipo 2
-            #   si controlla se è possibile inserire un attacco di tipo 1
-            #       se è possibile si inserisce l'attacco di tipo 1
-            #   altrimenti si inserisce traffico normale
-            #   Se nel mentre è possibile inserire un attacco di tipo 2, si inserisce l'attacco di tipo 2
+            available_attacks = self.get_next_available_attacks(index)
+            if available_attacks:
+                attack_type = self.decide_next_attack(available_attacks)
+                index = self.insert_attack(attack_type, index)
             else:
-                if index < lastAttackIndex1 + self.restDuration1:
-                    if index + self.burstDuration > self.size:
-                        end_index = self.size
-                    else:
-                        end_index = index + self.burstDuration
-                    self.buildElement(index, end_index, self.jammingTypes[0])
-                    last_signal = self.jammingTypes[0]
-                    index, lastAttackIndex1 = end_index
-                else:
-                    diff = index - lastAttackIndex1 + self.restDuration1
-                    if index + diff < lastAttackIndex2 + self.restDuration2:
-                        if index + self.burstDuration > self.size:
-                            end_index = self.size
-                        else:
-                            end_index = index + self.burstDuration
-                        self.buildElement(index, end_index, self.jammingTypes[1])
-                        last_signal = self.jammingTypes[1]
-                        index, lastAttackIndex2 = end_index
-                    else:
-                        if index + diff > self.size:
-                            end_index = self.size
-                        else:
-                            end_index = index + diff
-                        self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
-                        last_signal = Parameters.NORMAL_TRAFFIC
-                        index = end_index
+                next_available_time = self.get_next_available_time()
+                end_index = min(next_available_time, self.size)
+                index = self.insert_normal_traffic(index, end_index)
 
-
-
-
+        return self.constructor.assemble(self.jammingStructure)
