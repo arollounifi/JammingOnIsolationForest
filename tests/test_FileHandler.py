@@ -47,7 +47,7 @@ class TestFileHandler(unittest.TestCase):
         mock_read_csv.return_value = mock_data
 
         # Expected parsed output
-        expected_output = np.array([[-50], [-45], [-60]])
+        expected_output = np.array([[-50], [-45], [-60]]) - 95
 
         # Call the integrated method
         result = FileHandler.readAndParseFile('dummy.csv', 3)

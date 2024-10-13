@@ -18,7 +18,6 @@ class JammingAttack:
         self.jammingStructure = []
         self.constructor = Constructor()
 
-    # TODO -> Update the tests for this method
     #Selects the starting signal
     #jammingTypes: the number of jamming types to select from
     def selectStart(self, jammingTypes = None):
