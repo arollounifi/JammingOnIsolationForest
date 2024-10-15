@@ -157,5 +157,30 @@ class TestConstructor(unittest.TestCase):
         # Show the plot
         plt.show()
 
+    def test_introduce_anomalies(self):
+        # Dataset di esempio
+        dataset = np.array([-80, -82, -79, -83, -81, -84, -85, -77, -80, -81])
+
+        # Test 1: Verifica che il risultato sia un array NumPy
+        dati_sporcati = self.constructor.dirtyNormalValues(dataset, 0.071429, 2.345)
+        assert isinstance(dati_sporcati, np.ndarray), "Il risultato non è un array NumPy!"
+
+        # Test 2: Verifica che il numero di anomalie sia corretto
+        anomaly_ratio = 0.2  # Impostiamo il rapporto di anomalie al 20%
+        dati_sporcati = self.constructor.dirtyNormalValues(dataset, anomaly_ratio, 2.345)
+        num_anomalies = int(len(dataset) * anomaly_ratio)
+        num_changes = np.sum(dataset != dati_sporcati)  # Conta quanti valori sono cambiati
+        assert num_changes == num_anomalies, f"Il numero di anomalie introdotte è sbagliato! (Aspettato: {num_anomalies}, Trovato: {num_changes})"
+
+        # Test 3: Verifica che la lunghezza del risultato sia la stessa dell'input
+        dati_sporcati = self.constructor.dirtyNormalValues(dataset, anomaly_ratio, 2.345)
+        assert len(dati_sporcati) == len(dataset), "La lunghezza dell'array è cambiata!"
+
+        # Test 4: Stampa i valori originali e quelli "sporcati"
+        print("Dati originali:")
+        print(dataset)
+        print("\nDati sporcati:")
+        print(dati_sporcati)
+
 if __name__ == '__main__':
     unittest.main()

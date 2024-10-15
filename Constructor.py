@@ -1,5 +1,11 @@
+import random
+
+import numpy as np
+
 from FileHandler import FileHandler
 from Parameters import Parameters
+import pandas as pd
+
 
 
 class Constructor:
@@ -33,8 +39,29 @@ class Constructor:
         else:
             raise Exception("The jamming type is not valid")
 
+    def dirtyNormalValues(self, data, anomalyRate, anomalyFactor, scale = 5):
+
+        pd_data = pd.Series(data.flatten())
+
+        meanDaata = pd_data.mean()
+        stdData = pd_data.std()
+
+        upperBound = meanDaata + anomalyFactor * stdData
+        lowerBound = meanDaata - anomalyFactor * stdData
+        numAnomalies = int(len(data) * anomalyRate)
+        anomalyIndices = np.random.choice(pd_data.index, numAnomalies, replace=False)
+
+        for index in anomalyIndices:
+            if np.random.rand() > 0.5:
+                data[index] = upperBound + np.random.exponential(scale=scale)
+            else:
+                data[index] = lowerBound - np.random.exponential(scale=scale)
+
+        return data
+
     def getNormalValues(self, size):
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
+        jammingValues = self.dirtyNormalValues(jammingValues, 0.071429, 2.345)
         self.__lastNormalIndex += size
         return jammingValues
 

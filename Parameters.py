@@ -59,13 +59,13 @@ class Parameters:
 #--------------------------
 
     #---- JAMMING FILES ----#
-    #JAMMING_NEG10DBM_FILE = '../data/Jamming neg10dBm.csv'
-    #JAMMING_NEG40DBM_FILE = '../data/Jamming neg40dbm.csv'
-    #JAMMING_10DBM_FILE = '../data/Jamming 10dbm.csv'
+    JAMMING_NEG10DBM_FILE = '../data/Jamming neg10dBm.csv'
+    JAMMING_NEG40DBM_FILE = '../data/Jamming neg40dbm.csv'
+    JAMMING_10DBM_FILE = '../data/Jamming 10dbm.csv'
 
-    JAMMING_NEG10DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming neg10dBm.csv'
-    JAMMING_NEG40DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming neg40dBm.csv'
-    JAMMING_10DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming 10dBm.csv'
+    #JAMMING_NEG10DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming neg10dBm.csv'
+    #JAMMING_NEG40DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming neg40dBm.csv'
+    #JAMMING_10DBM_FILE = '/home/aure/PycharmProjects/JammingAttacksAnomalyDetection-Revised/data/Jamming 10dBm.csv'
     NORMAL_TRAFFIC_FILE = '../data/5GHz Background.csv'
 
     #---- JAMMING SIGNALS ----#
