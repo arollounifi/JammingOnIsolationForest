@@ -27,19 +27,21 @@ class Constructor:
             return jammingValues
 
         elif type == Parameters.JAMMING_NEG10DBM:
-            jammingsValues = self.__jammingValues_neg10dBm[self.__lastJammingNeg10dBmIndex:self.__lastJammingNeg10dBmIndex + size]
+            jammingValues = self.__jammingValues_neg10dBm[self.__lastJammingNeg10dBmIndex:self.__lastJammingNeg10dBmIndex + size]
+            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 1.345)
             self.__lastJammingNeg10dBmIndex += size
-            return jammingsValues
+            return jammingValues
 
         elif type == Parameters.JAMMING_NEG40DBM:
             jammingValues = self.__jammingValues_neg40dBm[self.__lastJammingNeg40dBmIndex:self.__lastJammingNeg40dBmIndex + size]
+            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 2.345)
             self.__lastJammingNeg40dBmIndex += size
             return jammingValues
 
         else:
             raise Exception("The jamming type is not valid")
 
-    def dirtyNormalValues(self, data, anomalyRate, anomalyFactor, scale = 5):
+    def dirtyValues(self, data, anomalyRate, anomalyFactor, scale = 5):
 
         pd_data = pd.Series(data.flatten())
 
@@ -61,7 +63,7 @@ class Constructor:
 
     def getNormalValues(self, size):
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
-        jammingValues = self.dirtyNormalValues(jammingValues, 0.071429, 2.345)
+        #jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
         self.__lastNormalIndex += size
         return jammingValues
 

@@ -1,4 +1,5 @@
-
+# semplice classe usata per raccogliere tutte le metriche delle classificazioni e poi stamparle se necessarie
+# Usato solo dalla classe "TestRunner" che cra un oggetto per raccogliere questi dati
 
 class ResultMetrics: 
     def __init__(self, accuracy, precision, recall, f1, confusionMatrix): 

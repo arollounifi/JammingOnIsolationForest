@@ -1,5 +1,7 @@
 from sklearn.ensemble import IsolationForest
 
+#Questa classe rappresenta proprio il ML isolation forest nella sua verisione classica
+
 class AnomalyClassifier: 
     
     #Standard isolation forest classifier
