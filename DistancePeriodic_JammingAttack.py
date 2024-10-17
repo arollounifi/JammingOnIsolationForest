@@ -18,6 +18,8 @@ class DistancePeriodic_JammingAttack(Periodic_JammingAttack):
     def __init__(self, size=20000):
         super().__init__(size)
 
+        print("Distance periodic size:" + str(self.size))
+
         self.burstDuration = self.decideBurstDuration() * 100
         self.dutyRate = self.decideDutyRate()
         self.restDuration = round((self.burstDuration/self.dutyRate)* (1-self.dutyRate))

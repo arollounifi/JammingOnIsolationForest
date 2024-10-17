@@ -14,6 +14,9 @@ MINIMUM_DUTY_RATE = 0.1
 class AlternatingPeriodic_JammingAttack(Periodic_JammingAttack):
     def __init__(self, size=20000, jammingTypes = None):
         super().__init__(size)
+
+        print("Alternating periodic size:" + str(self.size))
+
         if jammingTypes is None:
             self.jammingType = [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM]
         else:

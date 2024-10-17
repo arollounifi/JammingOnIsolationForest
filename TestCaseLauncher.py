@@ -29,8 +29,7 @@ from Constructor import Constructor
 # This class launches the test cases by setting the parameters and plots the results
 class TestCaseLauncher:
 
-    def __init__(self, n_estimators, max_samples, contamination, normal_traffic_size, jamming_traffic_size,
-                 classifierType=Parameters.STANDARD_ISOLATION_FOREST, windowSize=None):
+    def __init__(self, n_estimators, max_samples, contamination, normal_traffic_size, jamming_traffic_size, classifierType=Parameters.STANDARD_ISOLATION_FOREST, windowSize=None):
         # self.__normalTraffic = FileHandler.readAndParseFile(NORMAL_TRAFFIC_FILE, normal_traffic_size)
         # self.__constantJamming = FileHandler.readAndParseFile(CONSTANT_JAMMING_FILE, constant_jamming_size)
         # self.__periodicJamming = FileHandler.readAndParseFile(PERIODIC_JAMMING_FILE, periodic_jamming_size)
@@ -44,25 +43,25 @@ class TestCaseLauncher:
         self.normal_traffic_size = normal_traffic_size
         self.jamming_traffic_size = jamming_traffic_size
 
-    def __getJammingAndGruondTruth(self, jammingType):
+    def __getJammingAndGroundTruth(self, jammingType):
         match jammingType:
             case Parameters.CONSTANT_JAMMING:
-                attack = JammingAttack(self.normal_traffic_size)
+                attack = JammingAttack(self.jamming_traffic_size)
                 return attack.generateJamming()
             case Parameters.PERIODIC_JAMMING:
-                attack = Periodic_JammingAttack(Parameters.JAMMING_10DBM)
+                attack = Periodic_JammingAttack(self.jamming_traffic_size, Parameters.JAMMING_10DBM)
                 return attack.generateJamming()
             case Parameters.ALTERNATING_PERIODIC_JAMMING:
-                attack = AlternatingPeriodic_JammingAttack([Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
+                attack = AlternatingPeriodic_JammingAttack(self.jamming_traffic_size, [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
                 return attack.generateJamming()
             case Parameters.DISTANCE_PERIODIC_JAMMING:
-                attack = DistancePeriodic_JammingAttack(Parameters.JAMMING_10DBM)
+                attack = DistancePeriodic_JammingAttack(self.jamming_traffic_size)
                 return attack.generateJamming()
             case Parameters.RANDOM_PERIODIC_JAMMING:
-                attack = RandomPeriodic_JammingAttack(Parameters.JAMMING_10DBM)
+                attack = RandomPeriodic_JammingAttack(self. jamming_traffic_size)
                 return attack.generateJamming()
             case Parameters.TWO_RANDOM_PERIODIC_JAMMING:
-                attack = TwoRandom_JammingAttack([Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
+                attack = TwoRandom_JammingAttack(self.jamming_traffic_size, [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
                 return attack.generateJamming()
             case _:
                 raise Exception('Invalid jamming type')
@@ -72,15 +71,6 @@ class TestCaseLauncher:
         constructor = Constructor()
         jammingStructure.append([0, self.normal_traffic_size, Parameters.NORMAL_TRAFFIC])
         return constructor.assemble(jammingStructure)
-
-    # Prepares the model for the test. Test input is the normal traffic concatenated with the jamming signal
-    def __prepareModel(self, jammingType):
-        trainingSample = self.__getNormalTraffic()
-        jammingTestInput, jammingGroundTruth = self.__getJammingAndGruondTruth(jammingType)
-        # testInput = np.concatenate((trainingSample, jammingTestInput))
-        # groundTruth = np.concatenate((self.__getNormalTrafficGroundTruth(), jammingGroundTruth))
-        self.__tr = TestRunner(trainingSample, jammingTestInput, jammingGroundTruth, self.__nEstimators,
-                               self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
 
     # Splits the data points based on the classification results
     # TODO documentare meglio questa funzione
@@ -116,28 +106,30 @@ class TestCaseLauncher:
         Plotter.plotInSameGraph(x, [trainingTime], [labels[0]], colors[0], title + labels[0], axisLabels)
         Plotter.plotInSameGraph(x, [classificationTime], [labels[1]], colors[1], title + labels[1], axisLabels)
 
-    # Simple normal traffic concatenated with constant jamming test
-    def basicNormalJammingConcatenatedTest(self, jammingType, displayResultMetrics=True, displayPlot=True):
-        self.__prepareModel(jammingType)
-        self.__runBasicTest('Model classification of Normal Traffic and Jamming Signal', displayResultMetrics,
-                            displayPlot)
+    # Prepares the model for the test. Test input is the normal traffic concatenated with the jamming signal
+    def __prepareModel(self, jammingType):
+        trainingSample, trainingSampleGoundTruth = self.__getNormalTraffic()
+        jammingTestInput, jammingGroundTruth = self.__getJammingAndGroundTruth(jammingType)
+        # testInput = np.concatenate((trainingSample, jammingTestInput))
+        # groundTruth = np.concatenate((self.__getNormalTrafficGroundTruth(), jammingGroundTruth))
 
-    def __runBasicTest(self, graphTitle, displayResultMetrics=True, displayPlot=True):
+        print(f"Training sample shape: {trainingSample.shape}")
+        print(f"Testing sample shape: {jammingTestInput.shape}")
+        print(f"Ground truth length: {len(jammingGroundTruth)}")
+
+        self.__tr = TestRunner(trainingSample, jammingTestInput, jammingGroundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
+
+    #EX __runBasicTest + basicNormalJammingConcatenatedTest
+    def runSelectedTest(self, jammingType, graphTitle, displayResultMetrics = True, displayPlot = True):
+        self.__prepareModel(jammingType)
         result = self.__tr.runTest()
         if displayResultMetrics:
             print(result)
         if displayPlot:
-            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle,
-                                       ['Data Point', 'RSS[dBm]'])
-
-    '''
-    Mi servono i seguenti test per ogni tipo
-        uno normale
-    '''
+            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle, ['Data Point', 'RSS[dBm]'])
 
     # Runs tests where a parameter is increased in a range
-    def increasingMetricParameterTest(self, jammingType, parameter_id, startValue, endValue, stepSize,
-                                      displayResultMetrics=True, displayPlot=True):
+    def increasingMetricParameterTest(self, jammingType, parameter_id, startValue, endValue, stepSize, displayResultMetrics=True, displayPlot=True):
         self.__prepareModel(jammingType)
         results = self.__tr.increasingParameterTest(startValue, endValue, stepSize, parameter_id)
         if displayResultMetrics:
@@ -149,24 +141,22 @@ class TestCaseLauncher:
                                'Impact of ' + parameter_id + ' variation on performance metrics',
                                [parameter_id, 'Metric Value'])
 
-    # TODO da sistema per adattarlo al nuovo sistema
-    '''def groundTruthTest(self, jammingType):
-        signal, groundTruth = self.__getJammingSignalAndGroundTruth(jammingType)
+    #Generates and visualizes the ground truth for the jamming signal
+    def groundTruthTest(self, jammingType):
+        signal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
         r = TestResult(signal, 0, 0, 0, groundTruth, None)
         self.__plotInliersOutliers(r, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], 'Ground truth definition',
                                    ['Data Point', 'RSS[dBm]'])
 
+    # Visualizes the input data for the jamming signal
     def inputTest(self, jammingType):
-        jammingSignal, groundTruth = self.__getJammingSignalAndGroundTruth(jammingType)
-        testedSignal = np.concatenate((self.__normalTraffic, jammingSignal))
-        Plotter.plotSegmentedGraph(range(len(testedSignal)), testedSignal, len(self.__normalTraffic), 'b', 'r',
+        jammingSignal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
+        Plotter.plotSegmentedGraph(range(len(jammingSignal)), jammingSignal, self.normal_traffic_size, 'b', 'r',
                                    'Input data in the case of Constant Jamming', ['Data Point', 'RSS[dBm]'],
-                                   ['Normal Traffic', 'Jamming Signal'])'''
+                                   ['Normal Traffic', 'Jamming Signal'])
 
     # time test with increasing metric value
-    #TODO da adattare al nuovo sistema
-    def increasingMetricTimeTest(self, jammingType, parameter_id, startValue, endValue, stepSize,
-                                 displayResultMetrics=True, displayPlot=True):
+    def increasingMetricTimeTest(self, jammingType, parameter_id, startValue, endValue, stepSize, displayResultMetrics=True, displayPlot=True):
         self.__prepareModel(jammingType)
         results = self.__tr.increasingTimeTest(startValue, endValue, stepSize, parameter_id)
         if displayResultMetrics:
@@ -183,8 +173,7 @@ class TestCaseLauncher:
 
     # Compares the performance of two models based on a parameter
     #TODO da adattare al nuovo sistema
-    def compareModels(self, jammingType, parameter_id, startValue, endValue, stepSize, models, plotColors,
-                      displayResultMetrics=True, displayPlot=True):
+    def compareModels(self, jammingType, parameter_id, startValue, endValue, stepSize, models, plotColors, displayResultMetrics=True, displayPlot=True):
         results = []
         for model in models:
             self.__classifierType = model
@@ -251,4 +240,18 @@ class TestCaseLauncher:
         groundTruth = self.__getNormalTrafficGroundTruth()
         self.__tr = TestRunner(trainingSample, testInput, groundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
         self.__runBasicTest('Model classification of Normal Traffic', displayResultMetrics, displayPlot)
+        
+        # Simple normal traffic concatenated with constant jamming test
+    def basicNormalJammingConcatenatedTest(self, jammingType, displayResultMetrics=True, displayPlot=True):
+        self.__prepareModel(jammingType)
+        self.__runBasicTest('Model classification of Normal Traffic and Jamming Signal', displayResultMetrics,
+                            displayPlot)
+
+    def __runBasicTest(self, graphTitle, displayResultMetrics=True, displayPlot=True):
+        result = self.__tr.runTest()
+        if displayResultMetrics:
+            print(result)
+        if displayPlot:
+            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle,
+                                       ['Data Point', 'RSS[dBm]'])
     '''

@@ -13,10 +13,12 @@ MINIMUM_DUTY_RATE = 0.1
 
 
 class JammingAttack:
-    def __init__(self, size = 20000):
+    def __init__(self, size):
         self.size = size
         self.jammingStructure = []
         self.constructor = Constructor()
+
+        print("Jamming Attack size:" + str(self.size))
 
     #Selects the starting signal
     #jammingTypes: the number of jamming types to select from

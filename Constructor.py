@@ -11,9 +11,9 @@ import pandas as pd
 class Constructor:
     def __init__(self):
         self.__normalValues = FileHandler.readAndParseFile(Parameters.NORMAL_TRAFFIC_FILE, Parameters.NORMAL_TRAFFIC_SIZE)
-        self.__jammingValues_10dBm = FileHandler.readAndParseFile(Parameters.JAMMING_10DBM_FILE, Parameters.CONSTANT_JAMMING_SIZE)
-        self.__jammingValues_neg10dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG10DBM_FILE, Parameters.CONSTANT_JAMMING_SIZE)
-        self.__jammingValues_neg40dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG40DBM_FILE, Parameters.CONSTANT_JAMMING_SIZE)
+        self.__jammingValues_10dBm = FileHandler.readAndParseFile(Parameters.JAMMING_10DBM_FILE, Parameters.JAMMING_TRAFFIC_SIZE)
+        self.__jammingValues_neg10dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG10DBM_FILE, Parameters.JAMMING_TRAFFIC_SIZE)
+        self.__jammingValues_neg40dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG40DBM_FILE, Parameters.JAMMING_TRAFFIC_SIZE)
 
         self.__lastNormalIndex = 0
         self.__lastJamming10dBmIndex = 0
@@ -63,7 +63,7 @@ class Constructor:
 
     def getNormalValues(self, size):
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
-        #jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
+        jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
         self.__lastNormalIndex += size
         return jammingValues
 
@@ -76,16 +76,37 @@ class Constructor:
         self.__lastJamming10dBmIndex = 0
         self.__lastNormalIndex = 0
 
-        jammingValues = []
-        groundTruth = [None] * jammingStructure[-1][1]
+        jammingValues_list = []
+        groundTruth = []
 
         for element in jammingStructure:
+            start_idx = element[0]
+            end_idx = element[1]
+            size = end_idx - start_idx
             if element[2] != Parameters.NORMAL_TRAFFIC:
-                jammingValues.extend(self.getJammingValues(element[2], element[1] - element[0]))
-                groundTruth[element[0]:element[1]] = [Parameters.OUTLIERS] * (element[1] - element[0])
+                data = self.getJammingValues(element[2], size)
+
+                print(f"getJammingValues returned data of type {type(data)} and shape {data.shape}")
+
+                jammingValues_list.append(data)
+                groundTruth.extend([Parameters.OUTLIERS] * size)
+                #Old verion
+                #jammingValues.extend(self.getJammingValues(element[2], element[1] - element[0]))
+                #groundTruth[element[0]:element[1]] = [Parameters.OUTLIERS] * (element[1] - element[0])
             else:
-                jammingValues.extend(self.getNormalValues(element[1] - element[0]))
-                groundTruth[element[0]:element[1]] = [Parameters.INLIERS] * (element[1] - element[0])
+                data = self.getNormalValues(size)
+
+                print(f"getNormalValues returned data of type {type(data)} and shape {data.shape}")
+
+                jammingValues_list.append(data)
+                groundTruth.extend([Parameters.INLIERS] * size)
+                #Old version
+                #jammingValues.extend(self.getNormalValues(element[1] - element[0]))
+                #groundTruth[element[0]:element[1]] = [Parameters.INLIERS] * (element[1] - element[0])
+
+        jammingValues = np.concatenate(jammingValues_list)
+        ground = np.array(groundTruth)
+
         return jammingValues, groundTruth
 
 
@@ -102,7 +123,6 @@ class Constructor:
 
     def get_JammingValues_neg40dBm(self):
         return self.__jammingValues_neg40dBm
-
 
     def get_LastNormalIndex(self):
         return self.__lastNormalIndex

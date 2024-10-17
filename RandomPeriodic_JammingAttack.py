@@ -5,6 +5,8 @@ class RandomPeriodic_JammingAttack(Periodic_JammingAttack):
     def __init__(self, size = 20000):
         super().__init__(size)
 
+        print("random periodic size:" + str(self.size))
+
     def generateJamming(self):
         index = 0
         current_signal = self.selectStart(self.jammingType)

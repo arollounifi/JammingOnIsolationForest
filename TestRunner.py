@@ -17,6 +17,9 @@ from MajorityRuleAnomalyClassifier import MajorityRuleAnomalyClassifier
 class TestRunner:
     def __init__(self, trainingSample, testingSample, groundTruth, n_estimators, contamination, max_samples,
                  classifierType, window_size):
+
+        #testingSample = np.array(testingSample).reshape(-1, 1)
+
         self.__trainingSample = trainingSample
         self.__n_estimators = n_estimators
         self.__contamination = contamination
@@ -29,6 +32,10 @@ class TestRunner:
         self.__classifierType = classifierType
         self.__classifier = None
 
+        #print(f"Training sample shape: {self.__trainingSample.shape}")
+        #print(f"Testing sample shape: {self.__testingSample.shape}")
+        #print(f"Ground truth length: {len(self.__groundTruth)}")
+
     # Calculates the result metrics based on the classification results
     def __calculateResultMetrics(self, classificationResults):
         groundTruth = self.__groundTruth[:len(classificationResults)]
@@ -36,15 +43,13 @@ class TestRunner:
         precision = precision_score(groundTruth, classificationResults, pos_label=Parameters.OUTLIERS, zero_division=1)
         recall = recall_score(groundTruth, classificationResults, pos_label=Parameters.OUTLIERS, zero_division=1)
         f1 = f1_score(groundTruth, classificationResults, pos_label=Parameters.OUTLIERS, zero_division=1)
-        confusionMatrix = confusion_matrix(groundTruth, classificationResults,
-                                           labels=[Parameters.INLIERS, Parameters.OUTLIERS])
+        confusionMatrix = confusion_matrix(groundTruth, classificationResults, labels=[Parameters.INLIERS, Parameters.OUTLIERS])
 
         return ResultMetrics(accuracy, precision, recall, f1, confusionMatrix)
 
     def __getClassifier(self):
         if self.__classifierType == Parameters.STANDARD_ISOLATION_FOREST:
-            return AnomalyClassifier(self.__trainingSample, self.__n_estimators, self.__contamination,
-                                     self.__max_samples)
+            return AnomalyClassifier(self.__trainingSample, self.__n_estimators, self.__contamination, self.__max_samples)
         elif self.__classifierType == Parameters.MAJORITY_RULE_ISOLATION_FOREST:
             return MajorityRuleAnomalyClassifier(self.__trainingSample, self.__n_estimators, self.__contamination,
                                                  self.__max_samples, self.__windowSize)
@@ -76,8 +81,7 @@ class TestRunner:
     # Trains the model with the current parameters and classifies the testing sample
     def runTest(self):
         self.__prepareTest()  # chiama il preppare test di questa stessa classe per creare il ML e addestrarlo
-        classificationResults = self.__classifier.classify(
-            self.__testingSample)  # esegue il ML sui dati passati e ottiene i risultati
+        classificationResults = self.__classifier.classify(self.__testingSample)  # esegue il ML sui dati passati e ottiene i risultati
         # raccoglie i dati di risultati passando sia il risultato stesso ottenuto dal classificatore sia i parametri usati per fare il test stesso
         return TestResult(self.__testingSample, self.__n_estimators, self.__contamination, self.__max_samples,
                           classificationResults, self.__calculateResultMetrics(classificationResults))

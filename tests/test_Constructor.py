@@ -2,6 +2,7 @@ import os
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.ensemble import IsolationForest
 
 # Importing the necessary classes
 from FileHandler import FileHandler
@@ -29,9 +30,9 @@ class TestConstructor(unittest.TestCase):
 
         # Optionally check the sizes match the expected sizes from Parameters
         self.assertEqual(len(self.constructor.get_NormalValues()), Parameters.NORMAL_TRAFFIC_SIZE)
-        self.assertEqual(len(self.constructor.get_JammingValues_10dBm()), Parameters.CONSTANT_JAMMING_SIZE)
-        self.assertEqual(len(self.constructor.get_JammingValues_neg10dBm()), Parameters.CONSTANT_JAMMING_SIZE)
-        self.assertEqual(len(self.constructor.get_JammingValues_neg40dBm()), Parameters.CONSTANT_JAMMING_SIZE)
+        self.assertEqual(len(self.constructor.get_JammingValues_10dBm()), Parameters.JAMMING_TRAFFIC_SIZE)
+        self.assertEqual(len(self.constructor.get_JammingValues_neg10dBm()), Parameters.JAMMING_TRAFFIC_SIZE)
+        self.assertEqual(len(self.constructor.get_JammingValues_neg40dBm()), Parameters.JAMMING_TRAFFIC_SIZE)
 
     # Test that the getJammingValues method returns the correct amount of data
     def test_getJammingValues(self):
@@ -181,6 +182,119 @@ class TestConstructor(unittest.TestCase):
         print(dataset)
         print("\nDati sporcati:")
         print(dati_sporcati)
+
+    def test_type_checking_simulation(self):
+        # Create sample data arrays
+        self.normalValues = np.linspace(-80, -60, 1000)  # Example RSSI values for normal traffic
+        self.jammingValues_10dBm = np.linspace(-50, -30, 1000)
+        self.jammingValues_neg10dBm = np.linspace(-70, -50, 1000)
+        self.jammingValues_neg40dBm = np.linspace(-90, -70, 1000)
+
+        # Initialize Constructor instance
+        self.constructor = Constructor()
+
+        # Inject sample data into the Constructor instance
+        self.constructor._Constructor__normalValues = self.normalValues
+        self.constructor._Constructor__jammingValues_10dBm = self.jammingValues_10dBm
+        self.constructor._Constructor__jammingValues_neg10dBm = self.jammingValues_neg10dBm
+        self.constructor._Constructor__jammingValues_neg40dBm = self.jammingValues_neg40dBm
+
+        jammingStructure = [
+            (0, 100, Parameters.NORMAL_TRAFFIC),
+            (100, 200, Parameters.JAMMING_10DBM),
+            (200, 300, Parameters.NORMAL_TRAFFIC),
+            (300, 400, Parameters.JAMMING_NEG10DBM),
+            (400, 500, Parameters.NORMAL_TRAFFIC),
+            (500, 600, Parameters.JAMMING_NEG40DBM),
+            (600, 700, Parameters.NORMAL_TRAFFIC)
+        ]
+
+        # Call the assemble method
+        jammingValues, groundTruth = self.constructor.assemble(jammingStructure)
+
+        # Verify the types of the outputs
+        self.assertIsInstance(jammingValues, list)
+        self.assertIsInstance(groundTruth, list)
+
+        # Verify the lengths of the outputs
+        expected_length = jammingStructure[-1][1]  # Should be 700
+        self.assertEqual(len(jammingValues), expected_length)
+        self.assertEqual(len(groundTruth), expected_length)
+
+        # Convert jammingValues to a NumPy array for further checks
+        jammingValues_array = np.array(jammingValues)
+
+        # Ensure all elements are numeric
+        self.assertTrue(np.issubdtype(jammingValues_array.dtype, np.number))
+
+        # Reshape the data for IsolationForest (expects 2D array)
+        X = jammingValues_array.reshape(-1, 1)
+
+        # Verify the shape is appropriate
+        self.assertEqual(X.shape, (expected_length, 1))
+
+        # Attempt to fit IsolationForest
+        try:
+            clf = IsolationForest(random_state=42)
+            clf.fit(X)
+        except Exception as e:
+            self.fail(f"IsolationForest failed to fit the data: {e}")
+
+        # If no exception, the data is acceptable
+        print("Data is acceptable for IsolationForest.")
+
+    def test_assemble_with_actual_data(self):
+        # Create a sample jammingStructure
+        # For the purpose of the test, we'll create a simple structure
+        jammingStructure = [
+            (0, 500, Parameters.NORMAL_TRAFFIC),
+            (500, 1000, Parameters.JAMMING_10DBM),
+            (1000, 1500, Parameters.NORMAL_TRAFFIC),
+            (1500, 2000, Parameters.JAMMING_NEG10DBM),
+            (2000, 2500, Parameters.NORMAL_TRAFFIC),
+            (2500, 3000, Parameters.JAMMING_NEG40DBM),
+            (3000, 3500, Parameters.NORMAL_TRAFFIC)
+        ]
+
+        # Call the assemble method
+        try:
+            jammingValues, groundTruth = self.constructor.assemble(jammingStructure)
+        except Exception as e:
+            self.fail(f"assemble method raised an exception: {e}")
+
+        # Verify the types of the outputs
+        self.assertIsInstance(jammingValues, list)
+        self.assertIsInstance(groundTruth, list)
+
+        # Verify the lengths of the outputs
+        expected_length = jammingStructure[-1][1]  # Should be 35000
+        self.assertEqual(len(jammingValues), expected_length)
+        self.assertEqual(len(groundTruth), expected_length)
+
+        # Convert jammingValues to a NumPy array for further checks
+        jammingValues_array = np.array(jammingValues)
+
+        # Ensure all elements are numeric
+        self.assertTrue(np.issubdtype(jammingValues_array.dtype, np.number))
+
+        # Reshape the data for IsolationForest (expects 2D array)
+        X = jammingValues_array.reshape(-1, 1)
+
+        # Verify the shape is appropriate
+        self.assertEqual(X.shape, (expected_length, 1))
+
+        # Attempt to fit IsolationForest
+        try:
+            clf = IsolationForest(random_state=42)
+            clf.fit(X)
+        except Exception as e:
+            self.fail(f"IsolationForest failed to fit the data: {e}")
+
+        # If no exception, the data is acceptable
+        print("Data is acceptable for IsolationForest.")
+
+        # Print success message
+        print("Test passed successfully.")
 
 if __name__ == '__main__':
     unittest.main()
