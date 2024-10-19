@@ -36,11 +36,16 @@ class Plotter:
             plt.scatter(xPoints[i], yPoints[i], color=colors[i], label=graphLabels[i], s=2)
         Plotter.labelGraph(axisLabels[0], axisLabels[1], graphLabels, graphTitle)
 
-    def plotSegmentedGraph(x, y, n, color1, color2, graphTitle, axisLabels, pointLabels):
-        plt.scatter(x[:n], y[:n], color=color1, label=pointLabels[0], s=2)
+    def plotSegmentedGraph(x, rssi, max_magnitude, n, color1, color2, graphTitle, axisLabels, pointLabels):
 
-        plt.scatter(x[n:], y[n:], color=color2, label=pointLabels[1], s=2)
-        
+        # First plot the rssi values
+        plt.scatter(x[:n], rssi[:n], color=color1, label=f'{pointLabels[0]} (rssi)', s=2)
+        plt.scatter(x[n:], rssi[n:], color=color2, label=f'{pointLabels[1]} (rssi)', s=2)
+
+        # Then plot the max_magnitude values
+        plt.scatter(x[:n], max_magnitude[:n], color=color1, label=f'{pointLabels[0]} (max_magnitude)', s=2, marker='x')
+        plt.scatter(x[n:], max_magnitude[n:], color=color2, label=f'{pointLabels[1]} (max_magnitude)', s=2, marker='x')
+
         # Use the existing labelGraph function to set labels and display
         Plotter.labelGraph(axisLabels[0], axisLabels[1], pointLabels, graphTitle)
 

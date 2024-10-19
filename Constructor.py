@@ -28,13 +28,13 @@ class Constructor:
 
         elif type == Parameters.JAMMING_NEG10DBM:
             jammingValues = self.__jammingValues_neg10dBm[self.__lastJammingNeg10dBmIndex:self.__lastJammingNeg10dBmIndex + size]
-            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 1.345)
+            jammingValues = self.dirtyValues(jammingValues, 0.021429, 1.345)
             self.__lastJammingNeg10dBmIndex += size
             return jammingValues
 
         elif type == Parameters.JAMMING_NEG40DBM:
             jammingValues = self.__jammingValues_neg40dBm[self.__lastJammingNeg40dBmIndex:self.__lastJammingNeg40dBmIndex + size]
-            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 2.345)
+            jammingValues = self.dirtyValues(jammingValues, 0.021429, 2.345)
             self.__lastJammingNeg40dBmIndex += size
             return jammingValues
 
@@ -86,7 +86,7 @@ class Constructor:
             if element[2] != Parameters.NORMAL_TRAFFIC:
                 data = self.getJammingValues(element[2], size)
 
-                print(f"getJammingValues returned data of type {type(data)} and shape {data.shape}")
+                #print(f"getJammingValues returned data of type {type(data)} and shape {data.shape}")
 
                 jammingValues_list.append(data)
                 groundTruth.extend([Parameters.OUTLIERS] * size)
@@ -96,7 +96,7 @@ class Constructor:
             else:
                 data = self.getNormalValues(size)
 
-                print(f"getNormalValues returned data of type {type(data)} and shape {data.shape}")
+                #print(f"getNormalValues returned data of type {type(data)} and shape {data.shape}")
 
                 jammingValues_list.append(data)
                 groundTruth.extend([Parameters.INLIERS] * size)
@@ -107,7 +107,7 @@ class Constructor:
         jammingValues = np.concatenate(jammingValues_list)
         ground = np.array(groundTruth)
 
-        return jammingValues, groundTruth
+        return jammingValues, ground
 
 
 

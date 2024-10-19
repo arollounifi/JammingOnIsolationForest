@@ -47,64 +47,48 @@ class TestCaseLauncher:
         match jammingType:
             case Parameters.CONSTANT_JAMMING:
                 attack = JammingAttack(self.jamming_traffic_size)
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case Parameters.PERIODIC_JAMMING:
                 attack = Periodic_JammingAttack(self.jamming_traffic_size, Parameters.JAMMING_10DBM)
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case Parameters.ALTERNATING_PERIODIC_JAMMING:
                 attack = AlternatingPeriodic_JammingAttack(self.jamming_traffic_size, [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case Parameters.DISTANCE_PERIODIC_JAMMING:
                 attack = DistancePeriodic_JammingAttack(self.jamming_traffic_size)
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case Parameters.RANDOM_PERIODIC_JAMMING:
                 attack = RandomPeriodic_JammingAttack(self. jamming_traffic_size)
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case Parameters.TWO_RANDOM_PERIODIC_JAMMING:
                 attack = TwoRandom_JammingAttack(self.jamming_traffic_size, [Parameters.JAMMING_10DBM, Parameters.JAMMING_NEG10DBM])
-                return attack.generateJamming()
+                data, groundTruth = attack.generateJamming()
             case _:
                 raise Exception('Invalid jamming type')
+
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Expected jamming data to be a NumPy array")
+        if data.ndim != 2:
+            raise ValueError("Expected jamming data to be a 2D array")
+        if data.shape[1] != 2:
+            raise ValueError("Expected jamming data to have 2 columns (rssi and max_magnitude)")
+
+        return data, groundTruth
 
     def __getNormalTraffic(self):
         jammingStructure = []
         constructor = Constructor()
         jammingStructure.append([0, self.normal_traffic_size, Parameters.NORMAL_TRAFFIC])
-        return constructor.assemble(jammingStructure)
+        normalValues, NormalGroundTruth = constructor.assemble(jammingStructure)
 
-    # Splits the data points based on the classification results
-    # TODO documentare meglio questa funzione
-    def __separateInliersFromOutliers(self, inputData, classificationResults):
-        x = range(len(inputData))
-        normal_x = [x[i] for i in range(len(x)) if classificationResults[i] == 1]
-        normal_y = [inputData[i] for i in range(len(inputData)) if classificationResults[i] == 1]
-        jamming_x = [x[i] for i in range(len(x)) if classificationResults[i] == -1]
-        jamming_y = [inputData[i] for i in range(len(inputData)) if classificationResults[i] == -1]
-        return [normal_x, jamming_x], [normal_y, jamming_y]  # restituisce 2 liste a loro volta composte da 2 liste
+        if not isinstance(normalValues, np.ndarray):
+            raise ValueError("Expected normal traffic data to be a NumPy array")
+        if normalValues.ndim != 2:
+            raise ValueError("Expected normal traffic data to be a 2D array")
+        if normalValues.shape[1] != 2:
+            raise ValueError("Expected normal traffic data to have 2 columns (rssi and max_magnitude)")
 
-    # Plotting function for the scatter plot of inliers and outliers (shows the model classification)
-    def __plotInliersOutliers(self, result, labels, colors, title, axisLabels):
-        x, result = self.__separateInliersFromOutliers(result.inputData, result.classification)
-        Plotter.scatterPlot(x, result, labels, colors, title, axisLabels)
-
-    # raccoglie in diverse liste i vari parametri in delle liste di risultati
-    # usato per rappresentare come variano le performance quando vario i parametri
-    def __plotMetrics(self, x, results, labels, colors, title, axisLabels):
-        accuracy = [result.resultMetrics.accuracy for result in results]  # raccoglie tutte le accuracy
-        precision = [result.resultMetrics.precision for result in results]  # raccoglie tutte le preicison
-        recall = [result.resultMetrics.recall for result in results]  # raccoglie tutti i racell
-        f1 = [result.resultMetrics.f1 for result in results]  # raccoglie tutti gli f1
-        Plotter.plotInSameGraph(x, [accuracy, precision, recall, f1], labels, colors, title,
-                                axisLabels)  # stampa tutti i risultati raccolti
-
-    # raccoglie in diverse liste i vari tempi delle liste dei risultati
-    # usato per rappresentare come vairano i tempi di esecuzione ed addestramento al variare dei parametri
-    def __plotTime(self, x, results, labels, colors, title, axisLabels):
-        trainingTime = [result.trainingTime for result in results]  # raccoglie tutti i tempi di addestrameto
-        classificationTime = [result.classificationTime for result in
-                              results]  # raccoglie tutti i tempi di classificazione
-        Plotter.plotInSameGraph(x, [trainingTime], [labels[0]], colors[0], title + labels[0], axisLabels)
-        Plotter.plotInSameGraph(x, [classificationTime], [labels[1]], colors[1], title + labels[1], axisLabels)
+        return normalValues, NormalGroundTruth
 
     # Prepares the model for the test. Test input is the normal traffic concatenated with the jamming signal
     def __prepareModel(self, jammingType):
@@ -113,9 +97,9 @@ class TestCaseLauncher:
         # testInput = np.concatenate((trainingSample, jammingTestInput))
         # groundTruth = np.concatenate((self.__getNormalTrafficGroundTruth(), jammingGroundTruth))
 
-        print(f"Training sample shape: {trainingSample.shape}")
-        print(f"Testing sample shape: {jammingTestInput.shape}")
-        print(f"Ground truth length: {len(jammingGroundTruth)}")
+        #print(f"Training sample shape: {trainingSample.shape}")
+        #print(f"Testing sample shape: {jammingTestInput.shape}")
+        #print(f"Ground truth length: {len(jammingGroundTruth)}")
 
         self.__tr = TestRunner(trainingSample, jammingTestInput, jammingGroundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
 
@@ -126,7 +110,7 @@ class TestCaseLauncher:
         if displayResultMetrics:
             print(result)
         if displayPlot:
-            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle, ['Data Point', 'RSS[dBm]'])
+            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle, ['Data Point', 'RSS[dBm]', 'Max Magnitude'])
 
     # Runs tests where a parameter is increased in a range
     def increasingMetricParameterTest(self, jammingType, parameter_id, startValue, endValue, stepSize, displayResultMetrics=True, displayPlot=True):
@@ -146,12 +130,13 @@ class TestCaseLauncher:
         signal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
         r = TestResult(signal, 0, 0, 0, groundTruth, None)
         self.__plotInliersOutliers(r, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], 'Ground truth definition',
-                                   ['Data Point', 'RSS[dBm]'])
+                                   ['Data Point', 'RSS[dBm]', ])
 
     # Visualizes the input data for the jamming signal
+    #TODO: cambiare il nome del titolo stampato nel grafico
     def inputTest(self, jammingType):
         jammingSignal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
-        Plotter.plotSegmentedGraph(range(len(jammingSignal)), jammingSignal, self.normal_traffic_size, 'b', 'r',
+        Plotter.plotSegmentedGraph(range(len(jammingSignal)), jammingSignal[:,0], jammingSignal[:,1], self.normal_traffic_size, 'b', 'r',
                                    'Input data in the case of Constant Jamming', ['Data Point', 'RSS[dBm]'],
                                    ['Normal Traffic', 'Jamming Signal'])
 
@@ -172,7 +157,6 @@ class TestCaseLauncher:
                             'Impact of ' + parameter_id + ' variation on ', [parameter_id, 'Time[ms]'])
 
     # Compares the performance of two models based on a parameter
-    #TODO da adattare al nuovo sistema
     def compareModels(self, jammingType, parameter_id, startValue, endValue, stepSize, models, plotColors, displayResultMetrics=True, displayPlot=True):
         results = []
         for model in models:
@@ -194,6 +178,49 @@ class TestCaseLauncher:
                                     'Impact of ' + parameter_id + ' variation on classification time',
                                     [parameter_id, 'Time[ms]'])
 
+    # Splits the data points based on the classification results
+    # TODO documentare meglio questa funzione
+    def __separateInliersFromOutliers(self, inputData, classificationResults):
+        x = range(len(inputData))
+        normal_x = [x[i] for i in range(len(x)) if classificationResults[i] == 1]
+        normal_y = [inputData[i] for i in range(len(inputData)) if classificationResults[i] == 1]
+        jamming_x = [x[i] for i in range(len(x)) if classificationResults[i] == -1]
+        jamming_y = [inputData[i] for i in range(len(inputData)) if classificationResults[i] == -1]
+        return [normal_x, jamming_x], [normal_y, jamming_y]  # restituisce 2 liste a loro volta composte da 2 liste
+
+    # Plotting function for the scatter plot of inliers and outliers (shows the model classification)
+    def __plotInliersOutliers(self, result, labels, colors, title, axisLabels):
+        x, result_rssi = self.__separateInliersFromOutliers(result.inputData[:, 0],
+                                                            result.classification)  # Separazione per rssi
+        _, result_max_magnitude = self.__separateInliersFromOutliers(result.inputData[:, 1],
+                                                                     result.classification)  # Separazione per max_magnitude
+
+        # Plot RSSI
+        Plotter.scatterPlot(x, result_rssi, labels, colors, title + ' - RSSI', axisLabels)
+
+        # Plot Max Magnitude
+        Plotter.scatterPlot(x, result_max_magnitude, labels, colors, title + ' - Max Magnitude', axisLabels)
+
+    # raccoglie in diverse liste i vari parametri in delle liste di risultati
+    # usato per rappresentare come variano le performance quando vario i parametri
+    def __plotMetrics(self, x, results, labels, colors, title, axisLabels):
+        accuracy = [result.resultMetrics.accuracy for result in results]  # raccoglie tutte le accuracy
+        precision = [result.resultMetrics.precision for result in results]  # raccoglie tutte le preicison
+        recall = [result.resultMetrics.recall for result in results]  # raccoglie tutti i racell
+        f1 = [result.resultMetrics.f1 for result in results]  # raccoglie tutti gli f1
+        Plotter.plotInSameGraph(x, [accuracy, precision, recall, f1], labels, colors, title,
+                                axisLabels)  # stampa tutti i risultati raccolti
+
+    # raccoglie in diverse liste i vari tempi delle liste dei risultati
+    # usato per rappresentare come vairano i tempi di esecuzione ed addestramento al variare dei parametri
+    def __plotTime(self, x, results, labels, colors, title, axisLabels):
+        trainingTime = [result.trainingTime for result in results]  # raccoglie tutti i tempi di addestrameto
+        classificationTime = [result.classificationTime for result in
+                              results]  # raccoglie tutti i tempi di classificazione
+        Plotter.plotInSameGraph(x, [trainingTime], [labels[0]], colors[0], title + labels[0], axisLabels)
+        Plotter.plotInSameGraph(x, [classificationTime], [labels[1]], colors[1], title + labels[1], axisLabels)
+
+    # Plots the metrics
     # Vecchi metodi non più usati
     '''
     #returns the ground truth for the various types of data

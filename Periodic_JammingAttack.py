@@ -17,13 +17,13 @@ class Periodic_JammingAttack(JammingAttack):
         print("Peroidic Jamming attack size:" + str(self.size))
 
         self.jammingType = [jammingType] #only one type of jamming signal is considered
-        self.burstDuration = self.decideBurstDuration() * 100
-        self.dutyRate = self.decideDutyRate()
+        self.burstDuration = 400 #self.decideBurstDuration() * 100
+        self.dutyRate = 0.3 #self.decideDutyRate()
         self.restDuration = round((self.burstDuration/self.dutyRate)* (1-self.dutyRate))
 
     def generateJamming(self):
         index = 0
-        current_signal = self.selectStart(self.jammingType)
+        current_signal = Parameters.NORMAL_TRAFFIC #self.selectStart(self.jammingType)
 
         #print(f"Starting Signal: {start_signal}")
         #print(f"Burst Duration: {burst_duration}")

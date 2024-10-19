@@ -4,15 +4,15 @@ import pandas as pd
 class FileHandler:
     # Read file and return only the data contained in the "RSSI" column
     def _readFile (filename: str, maxLines):
-        data = pd.read_csv(filename, usecols=['rssi'], nrows=maxLines)
+        data = pd.read_csv(filename, usecols=['rssi', 'max_magnitude'], nrows=maxLines)
         if data.empty:
             raise FileNotFoundError('File not found or empty')
         return data
-    
+
     def _parseData (data):
-        parsedData = [float(value) for value in data['rssi']]
-        adjustedData = np.array(parsedData).reshape(-1,1) - 95 # Adjusting the RSSI values to convert them from percentage to dBm
-        return adjustedData
+        parsedData = np.array (data[['rssi', 'max_magnitude']])
+        parsedData[:, 0] = parsedData[:, 0] - 95
+        return parsedData
 
     def readAndParseFile (filename, maxLines):
         data = FileHandler._readFile(filename, maxLines)
