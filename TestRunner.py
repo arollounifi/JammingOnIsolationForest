@@ -18,7 +18,10 @@ class TestRunner:
     def __init__(self, trainingSample, testingSample, groundTruth, n_estimators, contamination, max_samples,
                  classifierType, window_size):
 
-        #testingSample = np.array(testingSample).reshape(-1, 1)
+        if not isinstance(trainingSample, np.ndarray) or trainingSample.ndim != 2 or trainingSample.shape[1] != 2:
+            raise ValueError("trainingSample must be a 2D array with 2 columns (rssi and max_magnitude)")
+        if not isinstance(testingSample, np.ndarray) or testingSample.ndim != 2 or testingSample.shape[1] != 2:
+            raise ValueError("testingSample must be a 2D array with 2 columns (rssi and max_magnitude)")
 
         self.__trainingSample = trainingSample
         self.__n_estimators = n_estimators
@@ -70,9 +73,9 @@ class TestRunner:
         elif parameter == Parameters.MAX_SAMPLES_ID:
             self.__max_samples = value
         elif parameter == Parameters.TESTING_SAMPLES_SIZE_ID:
-            self.__testingSample = self.__originalTestingSample[:value]
+            self.__testingSample = self.__originalTestingSample[:value, :]
         elif parameter == Parameters.TRAINING_SAMPLES_SIZE_ID:
-            self.__trainingSample = self.__originalTrainingSample[:value]
+            self.__trainingSample = self.__originalTrainingSample[:value, :]
         elif parameter == Parameters.WINDOW_SIZE_ID:
             self.__windowSize = value
         else:

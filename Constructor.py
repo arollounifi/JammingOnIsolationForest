@@ -28,13 +28,13 @@ class Constructor:
 
         elif type == Parameters.JAMMING_NEG10DBM:
             jammingValues = self.__jammingValues_neg10dBm[self.__lastJammingNeg10dBmIndex:self.__lastJammingNeg10dBmIndex + size]
-            jammingValues = self.dirtyValues(jammingValues, 0.021429, 1.345)
+            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 1.345)
             self.__lastJammingNeg10dBmIndex += size
             return jammingValues
 
         elif type == Parameters.JAMMING_NEG40DBM:
             jammingValues = self.__jammingValues_neg40dBm[self.__lastJammingNeg40dBmIndex:self.__lastJammingNeg40dBmIndex + size]
-            jammingValues = self.dirtyValues(jammingValues, 0.021429, 2.345)
+            #jammingValues = self.dirtyValues(jammingValues, 0.021429, 2.345)
             self.__lastJammingNeg40dBmIndex += size
             return jammingValues
 
@@ -51,7 +51,7 @@ class Constructor:
         upperBound = meanDaata + anomalyFactor * stdData
         lowerBound = meanDaata - anomalyFactor * stdData
         numAnomalies = int(len(data) * anomalyRate)
-        anomalyIndices = np.random.choice(pd_data.index, numAnomalies, replace=False)
+        anomalyIndices = np.random.choice(pd_data.index/2, numAnomalies, replace=False)
 
         for index in anomalyIndices:
             if np.random.rand() > 0.5:
@@ -63,7 +63,7 @@ class Constructor:
 
     def getNormalValues(self, size):
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
-        jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
+        #jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
         self.__lastNormalIndex += size
         return jammingValues
 

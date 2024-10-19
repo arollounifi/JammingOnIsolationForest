@@ -1,6 +1,7 @@
 from copyreg import constructor
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from Parameters import Parameters
 from TestRunner import TestRunner
@@ -73,7 +74,26 @@ class TestCaseLauncher:
         if data.shape[1] != 2:
             raise ValueError("Expected jamming data to have 2 columns (rssi and max_magnitude)")
 
+        #self.print_data(data)
+
         return data, groundTruth
+
+    def print_data(self, data):
+        plt.figure()
+        plt.plot(data[:, 0], label='RSSI')
+        plt.title('Normal Values - RSSI')
+        plt.xlabel('Index')
+        plt.ylabel('RSSI (dBm)')
+        plt.legend()
+        plt.show()
+        # Plot max_magnitude
+        plt.figure()
+        plt.plot(data[:, 1], label='Max Magnitude')
+        plt.title('Normal Values - Max Magnitude')
+        plt.xlabel('Index')
+        plt.ylabel('Max Magnitude')
+        plt.legend()
+        plt.show()
 
     def __getNormalTraffic(self):
         jammingStructure = []
@@ -87,6 +107,8 @@ class TestCaseLauncher:
             raise ValueError("Expected normal traffic data to be a 2D array")
         if normalValues.shape[1] != 2:
             raise ValueError("Expected normal traffic data to have 2 columns (rssi and max_magnitude)")
+
+        #self.print_data(normalValues)
 
         return normalValues, NormalGroundTruth
 
@@ -179,8 +201,8 @@ class TestCaseLauncher:
                                     [parameter_id, 'Time[ms]'])
 
     # Splits the data points based on the classification results
-    # TODO documentare meglio questa funzione
     def __separateInliersFromOutliers(self, inputData, classificationResults):
+
         x = range(len(inputData))
         normal_x = [x[i] for i in range(len(x)) if classificationResults[i] == 1]
         normal_y = [inputData[i] for i in range(len(inputData)) if classificationResults[i] == 1]
@@ -190,16 +212,14 @@ class TestCaseLauncher:
 
     # Plotting function for the scatter plot of inliers and outliers (shows the model classification)
     def __plotInliersOutliers(self, result, labels, colors, title, axisLabels):
-        x, result_rssi = self.__separateInliersFromOutliers(result.inputData[:, 0],
-                                                            result.classification)  # Separazione per rssi
-        _, result_max_magnitude = self.__separateInliersFromOutliers(result.inputData[:, 1],
-                                                                     result.classification)  # Separazione per max_magnitude
+        x, result_rssi = self.__separateInliersFromOutliers(result.inputData[:, 0], result.classification)  # Separazione per rssi
+        _, result_max_magnitude = self.__separateInliersFromOutliers(result.inputData[:, 1], result.classification)  # Separazione per max_magnitude
 
         # Plot RSSI
-        Plotter.scatterPlot(x, result_rssi, labels, colors, title + ' - RSSI', axisLabels)
+        Plotter.scatterPlot(x, result_rssi, labels, colors, ' - RSSI', axisLabels)
 
         # Plot Max Magnitude
-        Plotter.scatterPlot(x, result_max_magnitude, labels, colors, title + ' - Max Magnitude', axisLabels)
+        Plotter.scatterPlot(x, result_max_magnitude, labels, colors, ' - Max Magnitude', axisLabels)
 
     # raccoglie in diverse liste i vari parametri in delle liste di risultati
     # usato per rappresentare come variano le performance quando vario i parametri
