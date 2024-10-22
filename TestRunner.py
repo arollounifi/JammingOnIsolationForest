@@ -9,7 +9,6 @@ from Parameters import Parameters
 
 from MajorityRuleAnomalyClassifier import MajorityRuleAnomalyClassifier
 
-
 # This class runs the tests and returns the results
 # gli devo passare tutti i dati: sia quello di training, sia quello da classificare, sia il ground truth dei dati da classificare
 # inoltre passo vari parametri che vengono dal file PARAMETERS
@@ -93,9 +92,6 @@ class TestRunner:
     def increasingParameterTest(self, startingValue, endingValue, stepSize, parameter):
         results = []
 
-        '''
-        esegue il test un ascco di volte di fila: una volta per ogni valore incrementato e salva i risultati di ogni esecuzione in un array
-        '''
         for i in np.arange(startingValue, endingValue, stepSize):
             self.__setChosenParameter(parameter, i)  # aggiorna il parametro
             result = self.runTest()  # esegue il test con il valore aggiornato
@@ -117,11 +113,6 @@ class TestRunner:
     def increasingTimeTest(self, startingValue, endingValue, stepSize, parameter):
         results = []
 
-        '''
-        esegue il test una serie di volte: una volta per ogni incremento del valore.
-        Per ognuno di questi misura il tempo necessario per addestrarlo e per classificarlo con le funzioni apposite.
-        I tempi di addestramento e classificazione vengono tutti salvati via via in un array
-        '''
         for i in np.arange(startingValue, endingValue, stepSize):
             self.__setChosenParameter(parameter, i)  # aggiorna il paramtro
             trainingTime = self.evaluateTrainingTime()  # valuta il tempo di addestramento

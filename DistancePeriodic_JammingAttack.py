@@ -51,9 +51,11 @@ class DistancePeriodic_JammingAttack(Periodic_JammingAttack):
         # Generate distances for the jamming signals
         distances = np.array([initial_distance + i * distance_increment for i in range(num_steps)])
         print(distances)
+
         # Calculate FSPL for the distances
         fspl = 20 * np.log10(distances) + 20 * np.log10(frequency) + 20 * np.log10(4 * np.pi / c)
         print(fspl)
+
         # Apply FSPL only to jamming signals
         for i in range(num_steps):
             if jamming_flags[i] == Parameters.OUTLIERS:  # Apply FSPL only if it's a jamming signal

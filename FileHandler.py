@@ -11,7 +11,7 @@ class FileHandler:
 
     def _parseData (data):
         parsedData = np.array (data[['rssi', 'max_magnitude']])
-        parsedData[:, 0] = parsedData[:, 0] - 95
+        parsedData[:, 0] = parsedData[:, 0] - 95 # Adjusting RSSI values to be in decibels
         return parsedData
 
     def readAndParseFile (filename, maxLines):

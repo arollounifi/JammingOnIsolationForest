@@ -46,7 +46,6 @@ class AlternatingPeriodic_JammingAttack(Periodic_JammingAttack):
 
         while index < self.size:
             if current_signal == Parameters.JAMMING_NEG10DBM:
-                # Calculate end index for the current signal
                 end_index = index + self.restDuration
                 if end_index > self.size:
                     end_index = self.size
@@ -55,7 +54,6 @@ class AlternatingPeriodic_JammingAttack(Periodic_JammingAttack):
                 index = end_index
                 current_signal = Parameters.JAMMING_10DBM  # Switch between the 2 jamming types
             else:
-                # Calculate end index for the current signal
                 end_index = index + self.burstDuration
                 if end_index > self.size:
                     end_index = self.size

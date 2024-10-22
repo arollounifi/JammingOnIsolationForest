@@ -2,8 +2,9 @@ import random
 from operator import index
 
 from JammingAttack import JammingAttack
-from Parameters import Parameters#these values are to be intednded * 100
+from Parameters import Parameters
 
+#these values are to be intednded * 100
 MAXIMUM_BURST_DURATION = 5
 MINIMUM_BURST_DURTAION = 1
 

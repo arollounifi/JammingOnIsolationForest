@@ -7,8 +7,6 @@ class Parameters:
 
     NORMAL_TRAFFIC_SIZE = 22000
     JAMMING_TRAFFIC_SIZE = 22000
-    #CONSTANT_JAMMING_SIZE = 5000
-    #PERIODIC_JAMMING_SIZE = 5000
 
     #---- CONTAMINATION TEST ----#
     START_CONTAMINATION = 0.01
@@ -17,7 +15,7 @@ class Parameters:
 
     #---- ESTIMATORS TEST ----#
     START_ESTIMATORS = 1
-    END_ESTIMATORS = 50
+    END_ESTIMATORS = 150
     STEP_SIZE_ESTIMATORS = 1
 
     #---- MAX SAMPLES TEST ----#
@@ -70,8 +68,6 @@ class Parameters:
     NORMAL_TRAFFIC_FILE = 'data/5GHz Background.csv'
 
     #---- JAMMING SIGNALS ----#
-    #CONSTANT_JAMMING = 1
-    #PERIODIC_JAMMING = 2
     JAMMING_10DBM = 1
     JAMMING_NEG10DBM = 2
     JAMMING_NEG40DBM = 3

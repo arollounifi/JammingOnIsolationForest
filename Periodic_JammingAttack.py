@@ -36,13 +36,8 @@ class Periodic_JammingAttack(JammingAttack):
                 if end_index > self.size:
                     end_index = self.size
 
-                # Append the current element
                 self.buildElement(index, end_index, Parameters.NORMAL_TRAFFIC)
-
-                # Update index for the next element
                 index = end_index
-
-                # Swap the signal
                 current_signal = 1 - current_signal  # Switch between 0 and 1
             else:
                 # Calculate end index for the current signal
@@ -50,13 +45,8 @@ class Periodic_JammingAttack(JammingAttack):
                 if end_index > self.size:
                     end_index = self.size
 
-                # Append the current element
                 self.buildElement(index, end_index, Parameters.JAMMING_10DBM)
-
-                # Update index for the next element
                 index = end_index
-
-                # Swap the signal
-                current_signal = 1 - current_signal
+                current_signal = 1 - current_signal #Switch between 0 and 1
 
         return self.constructor.assemble(self.jammingStructure)

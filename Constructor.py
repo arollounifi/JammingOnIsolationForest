@@ -90,9 +90,6 @@ class Constructor:
 
                 jammingValues_list.append(data)
                 groundTruth.extend([Parameters.OUTLIERS] * size)
-                #Old verion
-                #jammingValues.extend(self.getJammingValues(element[2], element[1] - element[0]))
-                #groundTruth[element[0]:element[1]] = [Parameters.OUTLIERS] * (element[1] - element[0])
             else:
                 data = self.getNormalValues(size)
 
@@ -100,9 +97,6 @@ class Constructor:
 
                 jammingValues_list.append(data)
                 groundTruth.extend([Parameters.INLIERS] * size)
-                #Old version
-                #jammingValues.extend(self.getNormalValues(element[1] - element[0]))
-                #groundTruth[element[0]:element[1]] = [Parameters.INLIERS] * (element[1] - element[0])
 
         jammingValues = np.concatenate(jammingValues_list)
         ground = np.array(groundTruth)

@@ -17,23 +17,13 @@ from TwoRandom_JammingAttack import TwoRandom_JammingAttack
 
 from Constructor import Constructor
 
-# ---- DATA ----#
-
-# NORMAL_TRAFFIC_FILE = 'data/normal_traffic.txt'
-
-# CONSTANT_JAMMING_FILE = 'data/constant_jammer.txt'
-
-# PERIODIC_JAMMING_FILE = 'data/periodic_jammer.txt'
-
 
 # Wrapper class for TestRunner
 # This class launches the test cases by setting the parameters and plots the results
 class TestCaseLauncher:
 
     def __init__(self, n_estimators, max_samples, contamination, normal_traffic_size, jamming_traffic_size, classifierType=Parameters.STANDARD_ISOLATION_FOREST, windowSize=None):
-        # self.__normalTraffic = FileHandler.readAndParseFile(NORMAL_TRAFFIC_FILE, normal_traffic_size)
-        # self.__constantJamming = FileHandler.readAndParseFile(CONSTANT_JAMMING_FILE, constant_jamming_size)
-        # self.__periodicJamming = FileHandler.readAndParseFile(PERIODIC_JAMMING_FILE, periodic_jamming_size)
+
         self.__nEstimators = n_estimators
         self.__maxSamples = max_samples
         self.__contamination = contamination
@@ -116,8 +106,6 @@ class TestCaseLauncher:
     def __prepareModel(self, jammingType):
         trainingSample, trainingSampleGoundTruth = self.__getNormalTraffic()
         jammingTestInput, jammingGroundTruth = self.__getJammingAndGroundTruth(jammingType)
-        # testInput = np.concatenate((trainingSample, jammingTestInput))
-        # groundTruth = np.concatenate((self.__getNormalTrafficGroundTruth(), jammingGroundTruth))
 
         #print(f"Training sample shape: {trainingSample.shape}")
         #print(f"Testing sample shape: {jammingTestInput.shape}")
@@ -155,7 +143,6 @@ class TestCaseLauncher:
                                    ['Data Point', 'RSS[dBm]', ])
 
     # Visualizes the input data for the jamming signal
-    #TODO: cambiare il nome del titolo stampato nel grafico
     def inputTest(self, jammingType):
         jammingSignal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
         Plotter.plotSegmentedGraph(range(len(jammingSignal)), jammingSignal[:,0], jammingSignal[:,1], self.normal_traffic_size, 'b', 'r',
@@ -240,65 +227,3 @@ class TestCaseLauncher:
         Plotter.plotInSameGraph(x, [trainingTime], [labels[0]], colors[0], title + labels[0], axisLabels)
         Plotter.plotInSameGraph(x, [classificationTime], [labels[1]], colors[1], title + labels[1], axisLabels)
 
-    # Plots the metrics
-    # Vecchi metodi non più usati
-    '''
-    #returns the ground truth for the various types of data
-    def __getNormalTrafficGroundTruth(self): 
-        return Parameters.INLIERS * np.ones(len(self.__normalTraffic))
-    def __getConstantJammingGroundTruth(self): 
-        return Parameters.OUTLIERS * np.ones(len(self.__constantJamming))
-    def __getPeriodicJammingGroundTruth(self): 
-        start_offset = 293
-        pause = 557
-        jamming_time = 372
-
-        samplesNumber = len(self.__periodicJamming)
-
-        ground_truth = Parameters.INLIERS * np.ones(samplesNumber)
-
-        for i in range (0, int(samplesNumber/(jamming_time + pause)) + 1): 
-            jamming_start = start_offset + i *(jamming_time + pause)
-            jamming_end = jamming_start + jamming_time
-            if (jamming_start >= samplesNumber):
-                break
-            if (jamming_end >= samplesNumber):
-                jamming_end = samplesNumber
-            ground_truth[jamming_start:jamming_end] = Parameters.OUTLIERS
-        return ground_truth
-
-    def __getJammingSignalAndGroundTruth(self, signalType):
-        if signalType == Parameters.CONSTANT_JAMMING: 
-            return self.__constantJamming, self.__getConstantJammingGroundTruth()
-        elif signalType == Parameters.PERIODIC_JAMMING: 
-            return self.__periodicJamming, self.__getPeriodicJammingGroundTruth()
-        else: 
-            raise Exception('Invalid signal type')
-
-    def basicOnlyJammingTest(self, jammingType, displayResultMetrics = True, displayPlot = True):
-        trainingSample = self.__normalTraffic
-        jammingTestInput, jammingGroundTruth = self.__getJammingSignalAndGroundTruth(jammingType)
-        self.__tr = TestRunner(trainingSample, jammingTestInput, jammingGroundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
-        self.__runBasicTest('Model classification of Jamming Signal', displayResultMetrics, displayPlot)
-
-    def basicOnlyNormalTrafficTest(self, displayResultMetrics = True, displayPlot = True):
-        trainingSample = self.__normalTraffic
-        testInput = self.__normalTraffic
-        groundTruth = self.__getNormalTrafficGroundTruth()
-        self.__tr = TestRunner(trainingSample, testInput, groundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
-        self.__runBasicTest('Model classification of Normal Traffic', displayResultMetrics, displayPlot)
-        
-        # Simple normal traffic concatenated with constant jamming test
-    def basicNormalJammingConcatenatedTest(self, jammingType, displayResultMetrics=True, displayPlot=True):
-        self.__prepareModel(jammingType)
-        self.__runBasicTest('Model classification of Normal Traffic and Jamming Signal', displayResultMetrics,
-                            displayPlot)
-
-    def __runBasicTest(self, graphTitle, displayResultMetrics=True, displayPlot=True):
-        result = self.__tr.runTest()
-        if displayResultMetrics:
-            print(result)
-        if displayPlot:
-            self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle,
-                                       ['Data Point', 'RSS[dBm]'])
-    '''
