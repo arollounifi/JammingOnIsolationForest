@@ -79,9 +79,14 @@ class Constructor:
 
         return data
 
-    def getNormalValues(self, size):
+    def getNormalValues(self, size, training = False):
+        if training == True:
+            jammingValues = self.__normalValues[0:size]
+            jammingValues = self.dirtyValues(jammingValues, 0.351429, 2.345)
+            return jammingValues
+
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
-        jammingValues = self.dirtyValues(jammingValues, 0.261429, 2.345)
+        jammingValues = self.dirtyValues(jammingValues, 0.351429, 2.345)
         self.__lastNormalIndex += size
 
         '''if jammingValues.ndim > 1 and jammingValues.shape[1] > 1:  # Check if it's a 2D array
@@ -97,14 +102,21 @@ class Constructor:
 
         return jammingValues
 
-    def assemble(self, jammingStructure):
+    def assemble(self, jammingStructure, training = False):
         if jammingStructure is None or len(jammingStructure) == 0:
             raise Exception("The jamming structure is empty")
+
+        if training == True:
+            start_idx = jammingStructure[0]
+            end_idx = jammingStructure[1]
+            size = end_idx - start_idx
+            self.getNormalValues(size, training = True)
+
 
         self.__lastJammingNeg10dBmIndex = 0
         self.__lastJammingNeg40dBmIndex = 0
         self.__lastJamming10dBmIndex = 0
-        self.__lastNormalIndex = 20000
+        self.__lastNormalIndex = 0
 
         jammingValues_list = []
         groundTruth = []

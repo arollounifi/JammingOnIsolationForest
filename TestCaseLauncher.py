@@ -105,13 +105,16 @@ class TestCaseLauncher:
     # Prepares the model for the test. Test input is the normal traffic concatenated with the jamming signal
     def __prepareModel(self, jammingType):
         trainingSample, trainingSampleGoundTruth = self.__getNormalTraffic()
-        jammingTestInput, jammingGroundTruth = self.__getJammingAndGroundTruth(jammingType)
+        jammingData, jammingGroundTruth = self.__getJammingAndGroundTruth(jammingType)
+
+        jammingTestInput = np.concatenate((trainingSample, jammingData), axis=0)
+        groundTruth = np.concatenate ((trainingSampleGoundTruth, jammingGroundTruth), axis=0)
 
         #print(f"Training sample shape: {trainingSample.shape}")
         #print(f"Testing sample shape: {jammingTestInput.shape}")
         #print(f"Ground truth length: {len(jammingGroundTruth)}")
 
-        self.__tr = TestRunner(trainingSample, jammingTestInput, jammingGroundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
+        self.__tr = TestRunner(trainingSample, jammingTestInput, groundTruth, self.__nEstimators, self.__contamination, self.__maxSamples, self.__classifierType, self.__windowSize)
 
     #EX __runBasicTest + basicNormalJammingConcatenatedTest
     def runSelectedTest(self, jammingType, graphTitle, displayResultMetrics = True, displayPlot = True):
