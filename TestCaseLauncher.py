@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from Parameters import Parameters
+from ResultMetrics import ResultMetrics
 from TestRunner import TestRunner
 from Plotter import Plotter
 from TestResult import TestResult
@@ -125,6 +126,57 @@ class TestCaseLauncher:
         if displayPlot:
             self.__plotInliersOutliers(result, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], graphTitle, ['Data Point', 'RSS[dBm]', 'Max Magnitude'])
 
+    def runMultipleTestsAndCalculateAverage(self, jammingType, graphTitle, displayResultMetrics=False, displayPlot=False, iterations=5):
+        # Variabili per accumulare i risultati
+        total_accuracy = 0
+        total_precision = 0
+        total_recall = 0
+        total_f1 = 0
+
+        # Inizializza variabili per accumulare la matrice di confusione
+        total_tn = 0
+        total_fp = 0
+        total_fn = 0
+        total_tp = 0
+
+        # Esegui il test 5 volte
+        for i in range(iterations):
+            print(f"Running test {i + 1}/{iterations}")
+            self.runSelectedTest(jammingType, graphTitle, displayResultMetrics, displayPlot)
+            result_metrics = self.__tr.runTest().resultMetrics  # Ottieni il resultMetrics
+
+            # Accumula i risultati
+            total_accuracy += result_metrics.accuracy
+            total_precision += result_metrics.precision
+            total_recall += result_metrics.recall
+            total_f1 += result_metrics.f1
+
+            # Accumula i valori della matrice di confusione
+            total_tn += result_metrics.tn
+            total_fp += result_metrics.fp
+            total_fn += result_metrics.fn
+            total_tp += result_metrics.tp
+
+        # Calcola le medie
+        avg_accuracy = total_accuracy / iterations
+        avg_precision = total_precision / iterations
+        avg_recall = total_recall / iterations
+        avg_f1 = total_f1 / iterations
+
+        # Calcola la media della matrice di confusione
+        avg_tn = total_tn / iterations
+        avg_fp = total_fp / iterations
+        avg_fn = total_fn / iterations
+        avg_tp = total_tp / iterations
+
+        # Costruisci la matrice di confusione media
+        avg_confusion_matrix = np.array([[avg_tn, avg_fp], [avg_fn, avg_tp]])
+
+        # Crea l'oggetto ResultMetrics con i valori medi
+        avg_result_metrics = ResultMetrics(avg_accuracy, avg_precision, avg_recall, avg_f1, avg_confusion_matrix)
+
+        print(avg_result_metrics)
+
     # Runs tests where a parameter is increased in a range
     def increasingMetricParameterTest(self, jammingType, parameter_id, startValue, endValue, stepSize, displayResultMetrics=True, displayPlot=True):
         self.__prepareModel(jammingType)
@@ -210,6 +262,7 @@ class TestCaseLauncher:
 
         # Plot Max Magnitude
         Plotter.scatterPlot(x, result_max_magnitude, labels, colors, ' - Max Magnitude', axisLabels)
+        Plotter.scatterPlot(result_rssi, result_max_magnitude, labels, colors, ' - RSSI vs Max Magnitude', ['RSSI', 'Max_Magnitude'])
 
     # raccoglie in diverse liste i vari parametri in delle liste di risultati
     # usato per rappresentare come variano le performance quando vario i parametri
