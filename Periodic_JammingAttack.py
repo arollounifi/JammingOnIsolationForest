@@ -17,8 +17,8 @@ class Periodic_JammingAttack(JammingAttack):
         print("Peroidic Jamming attack size:" + str(self.size))
 
         self.jammingType = [jammingType] #only one type of jamming signal is considered
-        self.burstDuration = 400 #self.decideBurstDuration() * 100
-        self.dutyRate = 0.3 #self.decideDutyRate()
+        self.burstDuration = self.decideBurstDuration() * 25
+        self.dutyRate = self.decideDutyRate()
         self.restDuration = round((self.burstDuration/self.dutyRate)* (1-self.dutyRate))
 
     def generateJamming(self):

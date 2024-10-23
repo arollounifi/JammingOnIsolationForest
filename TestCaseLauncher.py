@@ -136,7 +136,7 @@ class TestCaseLauncher:
                                [parameter_id, 'Metric Value'])
 
     #Generates and visualizes the ground truth for the jamming signal
-    def groundTruthTest(self, jammingType):
+    '''def groundTruthTest(self, jammingType):
         signal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
         r = TestResult(signal, 0, 0, 0, groundTruth, None)
         self.__plotInliersOutliers(r, ['Normal Traffic', 'Jamming Signal'], ['b', 'r'], 'Ground truth definition',
@@ -147,7 +147,7 @@ class TestCaseLauncher:
         jammingSignal, groundTruth = self.__getJammingAndGroundTruth(jammingType)
         Plotter.plotSegmentedGraph(range(len(jammingSignal)), jammingSignal[:,0], jammingSignal[:,1], self.normal_traffic_size, 'b', 'r',
                                    'Input data in the case of Constant Jamming', ['Data Point', 'RSS[dBm]'],
-                                   ['Normal Traffic', 'Jamming Signal'])
+                                   ['Normal Traffic', 'Jamming Signal'])'''
 
     # time test with increasing metric value
     def increasingMetricTimeTest(self, jammingType, parameter_id, startValue, endValue, stepSize, displayResultMetrics=True, displayPlot=True):
@@ -165,7 +165,7 @@ class TestCaseLauncher:
             self.__plotTime(x, results, ['Training Time', 'Classification Time'], ['b', 'r'],
                             'Impact of ' + parameter_id + ' variation on ', [parameter_id, 'Time[ms]'])
 
-    # Compares the performance of two models based on a parameter
+    '''# Compares the performance of two models based on a parameter
     def compareModels(self, jammingType, parameter_id, startValue, endValue, stepSize, models, plotColors, displayResultMetrics=True, displayPlot=True):
         results = []
         for model in models:
@@ -185,7 +185,7 @@ class TestCaseLauncher:
                                     [parameter_id, 'Time[ms]'])
             Plotter.plotInSameGraph(x, classificationTimes, models, plotColors,
                                     'Impact of ' + parameter_id + ' variation on classification time',
-                                    [parameter_id, 'Time[ms]'])
+                                    [parameter_id, 'Time[ms]'])'''
 
     # Splits the data points based on the classification results
     def __separateInliersFromOutliers(self, inputData, classificationResults):

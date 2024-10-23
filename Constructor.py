@@ -15,6 +15,20 @@ class Constructor:
         self.__jammingValues_neg10dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG10DBM_FILE, Parameters.JAMMING_TRAFFIC_SIZE)
         self.__jammingValues_neg40dBm = FileHandler.readAndParseFile(Parameters.JAMMING_NEG40DBM_FILE, Parameters.JAMMING_TRAFFIC_SIZE)
 
+        if not isinstance(self.__normalValues, np.ndarray):
+            raise ValueError("Expected normal traffic data to be a NumPy array")
+        if self.__normalValues.ndim != 2:
+            raise ValueError("Expected normal traffic data to be a 2D array")
+        if self.__normalValues.shape[1] != 2:
+            raise ValueError("Expected normal traffic data to have 2 columns (rssi and max_magnitude)")
+
+        if not isinstance(self.__jammingValues_10dBm, np.ndarray):
+            raise ValueError("Expected normal traffic data to be a NumPy array")
+        if self.__jammingValues_10dBm.ndim != 2:
+            raise ValueError("Expected normal traffic data to be a 2D array")
+        if self.__jammingValues_10dBm.shape[1] != 2:
+            raise ValueError("Expected normal traffic data to have 2 columns (rssi and max_magnitude)")
+
         self.__lastNormalIndex = 0
         self.__lastJamming10dBmIndex = 0
         self.__lastJammingNeg10dBmIndex = 0
@@ -43,7 +57,7 @@ class Constructor:
 
     def dirtyValues(self, data, anomalyRate, anomalyFactor, scale = 5):
 
-        pd_data = pd.Series(data.flatten())
+        pd_data = pd.Series(data[:,0].flatten())
 
         meanDaata = pd_data.mean()
         stdData = pd_data.std()
@@ -51,20 +65,36 @@ class Constructor:
         upperBound = meanDaata + anomalyFactor * stdData
         lowerBound = meanDaata - anomalyFactor * stdData
         numAnomalies = int(len(data) * anomalyRate)
-        anomalyIndices = np.random.choice(pd_data.index/2, numAnomalies, replace=False)
+        anomalyIndices = np.random.choice(pd_data.index, numAnomalies, replace=False)
 
         for index in anomalyIndices:
             if np.random.rand() > 0.5:
-                data[index] = upperBound + np.random.exponential(scale=scale)
+                data[index, 0] = upperBound + np.random.exponential(scale=scale)
+                #data[index, 1] = upperBound + np.random.exponential(scale=scale)
+
             else:
-                data[index] = lowerBound - np.random.exponential(scale=scale)
+                data[index, 0] = lowerBound - np.random.exponential(2)
+                #data[index, 1] = upperBound + np.random.exponential(scale=scale)
+
 
         return data
 
     def getNormalValues(self, size):
         jammingValues = self.__normalValues[self.__lastNormalIndex:self.__lastNormalIndex + size]
-        #jammingValues = self.dirtyValues(jammingValues, 0.071429, 2.345)
+        jammingValues = self.dirtyValues(jammingValues, 0.261429, 2.345)
         self.__lastNormalIndex += size
+
+        '''if jammingValues.ndim > 1 and jammingValues.shape[1] > 1:  # Check if it's a 2D array
+            first_column = jammingValues[:, 0]  # Select the first column
+        else:
+            first_column = jammingValues  # If it's 1D, use the values as is
+
+        # Save the first column to a text file, one value per line
+        with open('normal_values.txt', 'w') as f_values:
+            for value in first_column.flatten():
+                f_values.write(f'{value:.2f}\n')  # Save each value on a new line with 2 decimal places'''
+
+
         return jammingValues
 
     def assemble(self, jammingStructure):
@@ -74,7 +104,7 @@ class Constructor:
         self.__lastJammingNeg10dBmIndex = 0
         self.__lastJammingNeg40dBmIndex = 0
         self.__lastJamming10dBmIndex = 0
-        self.__lastNormalIndex = 0
+        self.__lastNormalIndex = 20000
 
         jammingValues_list = []
         groundTruth = []
@@ -100,6 +130,22 @@ class Constructor:
 
         jammingValues = np.concatenate(jammingValues_list)
         ground = np.array(groundTruth)
+
+        '''# Export only the first column of the jammingValues matrix to a text file
+        if jammingValues.ndim > 1 and jammingValues.shape[1] > 1:  # Check if it's a 2D array
+            first_column = jammingValues[:, 0]  # Select the first column
+        else:
+            first_column = jammingValues  # If it's 1D, use the values as is
+
+        # Save the first column to a text file, one value per line
+        with open('jamming_values_first_column.txt', 'w') as f_values:
+            for value in first_column.flatten():
+                f_values.write(f'{value:.2f}\n')  # Save each value on a new line with 2 decimal places
+
+        # Save ground truth to a separate text file, one value per line
+        with open('ground_truth.txt', 'w') as f_ground:
+            for label in ground:
+                f_ground.write(f'{label}\n')  # Save each ground truth label on a new line'''
 
         return jammingValues, ground
 
